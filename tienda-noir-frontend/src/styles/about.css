@@ -1,0 +1,35 @@
+.about {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 100px 20px;
+  background-color: #0d0d0d;
+  color: white;
+  text-align: left;
+}
+
+.about div {
+  max-width: 500px;
+}
+
+.about h3 {
+  font-size: 36px;
+  color: #ff4d00;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.about p {
+  font-size: 18px;
+  line-height: 1.8;
+  color: #ddd;
+}
+
+.about img {
+  width: 400px;
+  max-width: 90%;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(255, 77, 0, 0.2);
+}

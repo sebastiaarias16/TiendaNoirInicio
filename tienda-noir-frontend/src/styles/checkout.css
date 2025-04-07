@@ -1,0 +1,12 @@
+.checkout {
+    text-align: center;
+    padding: 40px;
+  }
+  
+  .checkout h2 {
+    font-size: 24px;
+  }
+  
+  .checkout button {
+    margin-top: 20px;
+  }  

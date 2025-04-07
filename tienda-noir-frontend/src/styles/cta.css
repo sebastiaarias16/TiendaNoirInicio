@@ -1,0 +1,31 @@
+.cta {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../../public/Img/Fondo1.jpg');
+  background-size: cover;
+  background-position: center;
+  padding: 120px 20px;
+  text-align: center;
+  color: white;
+}
+
+.cta h2 {
+  font-size: 48px;
+  margin-bottom: 30px;
+  color: #ff4d00;
+  font-weight: 700;
+}
+
+.cta button {
+  font-size: 18px;
+  padding: 14px 32px;
+  background-color: #ff4d00;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.cta button:hover {
+  background-color: #e64000;
+  transform: scale(1.05);
+}
