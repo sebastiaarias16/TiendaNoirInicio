@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import '../styles/hero.css';
 
-const images = [
-  '../../public/Img/Fondo1.jpg',
-  '../../public/Img/fondo2.jpg',
-  '../../public/Img/fondo3.jpg',
-];
+import fondo1 from '../assets/Fondo1.jpg';
+import fondo2 from '../assets/fondo2.jpg';
+import fondo3 from '../assets/fondo3.jpg';
+
+const images = [fondo1, fondo2, fondo3];
 
 const Hero = () => {
   const [currentImage, setCurrentImage] = useState(0);

@@ -1,5 +1,5 @@
 .cta {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../../public/Img/Fondo1.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/fondo2.jpg');
   background-size: cover;
   background-position: center;
   padding: 120px 20px;

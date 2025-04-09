@@ -6,9 +6,9 @@ import '../styles/promotions.css';
 
 const PromotionsCarousel = () => {
   const promos = [
-    { text: "🔥 20% OFF en toda la colección Noir", image: "../../public/Img/promocion1.jpg" },
-    { text: "🖤 Nueva Línea Oversized", image: "../../public/Img/promo2.jpg" },
-    { text: "💪 Envíos gratis por compras superiores a $150.000", image: "../../public/Img/promo3.jpg" }
+    { text: "🔥 20% OFF en toda la colección Noir", image: "/Img/promocion1.jpg" },
+    { text: "🖤 Nueva Línea Oversized", image: "/Img/promo2.jpg" },
+    { text: "💪 Envíos gratis por compras superiores a $150.000", image: "/Img/promo3.jpg" }
   ];
 
   const settings = {

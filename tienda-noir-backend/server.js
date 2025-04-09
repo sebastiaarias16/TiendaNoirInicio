@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./db'); // Conexión MongoDB
+const path = require('path');
 
 const invoiceRoutes = require('./routes/invoice'); // Rutas de facturas
 const productRoutes = require('./routes/productRoutes'); // Rutas de productos
@@ -18,6 +19,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/invoice', invoiceRoutes);
 app.use('/api/products', productRoutes); // 🔥 Asegurar ruta de productos
 app.use('/api/orders', orderRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
     res.send('🖤 Tienda Noir API funcionando...');

@@ -10,19 +10,96 @@ mongoose.connect(process.env.MONGO_URI, {
 const productos = [
   {
     nombre: 'Camiseta Noir Pro',
-    precio: 100000,
-    descripcion: 'Camiseta deportiva de compresion',
-    stock: 10,
-    categoria: 'Camisa',
-    imagen: 'C:/Users/SEBASTIAN/Desktop/Catalogo/iloveimg-converted/CamisaHombre2.jpg'
+    precio: 40.000,
+    descripcion: 'Camiseta deportiva de compresión con tela transpirable.',
+    stock: 3,
+    categoria: 'Camisa Compresion',
+    imagenes: [
+      'http://localhost:3000/uploads/CamisaHombre3.jpg'     // Negro
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro'],
+    featured: true
   },
   {
-    nombre: 'leguis Mujer',
-    precio: 120000,
-    descripcion: 'leggis pantalon para mujer',
-    stock: 10,
-    categoria: 'Pantalon',
-    imagen: 'C:/Users/SEBASTIAN/Desktop/Catalogo/iloveimg-converted/LicraPantMujer1.jpg'
+    nombre: 'Leggins Mujer Noir',
+    precio: 85.000,
+    descripcion: 'Leggins flexibles para mujer con control abdominal.',
+    stock: 5,
+    categoria: 'legging Pantalon',
+    imagenes: [
+      'http://localhost:3000/uploads//leggingMujer2.png'        // Negro
+    ],
+    tallas: ['S', 'M', 'L', 'XL'],
+    colores: ['Negro']
+  },
+  {
+    nombre: 'Leggins Mujer Noir',
+    precio: 85.000,
+    descripcion: 'Leggins flexibles para mujer con control abdominal.',
+    stock: 5,
+    categoria: 'legging Pantalon',
+    imagenes: [
+      'http://localhost:3000/uploads//leggingMujer3.png'        // Negro
+    ],
+    tallas: ['S', 'M', 'L', 'XL'],
+    colores: ['Negro'],
+    featured: true
+  },
+  {
+    nombre: 'Camiseta Noir Manga larga',
+    precio: 46.000,
+    descripcion: 'Camiseta manga larga deportiva de compresión adaptable al cuerpo.',
+    stock: 3,
+    categoria: 'Camisa Compresion',
+    imagenes: [
+      'http://localhost:3000/uploads/CamisaCompresionMangaLargaHombre2.png'     // Negro
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro']
+  },
+  {
+    nombre: 'Camiseta Noir Pro',
+    precio: 40.000,
+    descripcion: 'Camiseta deportiva de compresión con tela transpirable.',
+    stock: 3,
+    categoria: 'Camisa Compresion',
+    imagenes: [
+      'http://localhost:3000/uploads/CamisaHombre2.jpg',     // Gris
+      'http://localhost:3000/uploads/CamisaCompresionHombreAzul.png',     // Azul
+      'http://localhost:3000/uploads/CamisaCompresionHombreRojo.png'     // Rojo
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Gris','Azul','Rojo'],
+    featured: true
+  },
+  {
+    nombre: 'Pantaloneta deportiva',
+    precio: 25.000,
+    descripcion: 'pantaloneta deportiva corta.',
+    stock: 3,
+    categoria: 'Pantaloneta',
+    imagenes: [
+      'http://localhost:3000/uploads/PantalonetaHombre1.png',     // Azul
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro']
+  },
+  {
+    nombre: 'Conjunto de compresion Mujer',
+    precio: 25.000,
+    descripcion: 'Conjunto deportivo de legging con control abdominal y Top corto manga larga.',
+    stock: 3,
+    categoria: 'Conjunto Mujer',
+    imagenes: [
+      'http://localhost:3000/uploads/ConjuntoMujerNegro.png',     // Negro
+      'http://localhost:3000/uploads/ConjuntoMujerAzulOscuro.png',     // Azul Oscuro
+      'http://localhost:3000/uploads/ConjuntoMujerGris.png',     // Gris
+      'http://localhost:3000/uploads/ConjuntoMujerBlanco.png'   //Blanco
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Gris','Azul','Rojo'],
+    featured: true
   }
 ];
 
