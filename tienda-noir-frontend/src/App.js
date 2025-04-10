@@ -8,6 +8,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import { getUser, logout } from './api/auth'; // Importamos funciones de autenticación
 import './styles/navbar.css';
+import '../src/App.css';
+
 
 const App = () => {
   const [cart, setCart] = useState([]);

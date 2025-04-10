@@ -4,7 +4,8 @@ import '../styles/collection.css';
 const products = [
   { id: 1, name: "Camiseta Oversized", img: "/Img/camisa1.png" },
   { id: 2, name: "Sudadera Performance", img: "/Img/sudadera1.png" },
-  { id: 3, name: "Pantalon Jogger", img: "/Img/pantalon1.png" }
+  { id: 3, name: "Pantalon Jogger", img: "/Img/pantalon1.png" },
+  { id: 4, name: "Pantaloneta NOIR", img: "/Img/pantalon1.png" }
 ];
 
 const Collection = () => (

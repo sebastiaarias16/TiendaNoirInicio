@@ -7,11 +7,11 @@ const Navbar = ({ user, onLogout }) => {
 
   return (
     <nav>
-      <h1>🖤 Noir</h1>
+      <h1>NOIR</h1>
       <ul>
-        <li><Link to="/">Inicio</Link></li>
-        <li><Link to="/products">Productos</Link></li>
-        <li><Link to="/checkout">Carrito</Link></li>
+        <li><Link to="/">INICIO</Link></li>
+        <li><Link to="/products">PRODUCTOS</Link></li>
+        <li><Link to="/checkout">CARRITO</Link></li>
 
         {user ? (
           // Si el usuario está logueado, mostramos el icono del muñeco
@@ -27,8 +27,8 @@ const Navbar = ({ user, onLogout }) => {
         ) : (
           // Si no hay usuario, mostramos los botones de Login y Registro
           <>
-            <li><Link to="/login">Iniciar Sesión</Link></li>
-            <li><Link to="/register">Registrarse</Link></li>
+            <li><Link to="/login">INICIAR SESION</Link></li>
+            <li><Link to="/register">RESGISTRARSE</Link></li>
           </>
         )}
       </ul>

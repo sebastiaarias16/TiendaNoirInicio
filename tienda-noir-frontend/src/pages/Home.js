@@ -9,12 +9,11 @@ import '../styles/buttons.css'
 
 const Home = () => (
   <>
-      <Hero />
-      <FeaturedCarousel />
-      <PromotionsCarousel />
-    <Collection />
+    <Hero />
+    <FeaturedCarousel />
+    <PromotionsCarousel />
     <About />
-    <CTA />   
+    <CTA />
     <Footer />
   </>
 );

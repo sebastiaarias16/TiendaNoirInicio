@@ -1,48 +1,47 @@
-footer {
+.footer {
   background-color: #000;
-  padding: 60px 20px;
-  color: white;
+  color: #fff;
+  padding: 40px 20px;
+  border-top: 1px solid #1a1a1a;
+  font-family: 'Inter', sans-serif;
+}
+
+.footer-content {
+  max-width: 900px;
+  margin: 0 auto;
   text-align: center;
-  border-top: 1px solid #111;
 }
 
-footer p {
+.footer-copy {
   font-size: 14px;
-  color: #aaa;
   margin-bottom: 20px;
+  color: #aaa;
 }
 
-footer .social {
+.footer-copy span {
+  color: #fff;
+  font-weight: 600;
+}
+
+.social {
   display: flex;
   justify-content: center;
   gap: 40px;
   flex-wrap: wrap;
 }
 
-footer .social a {
+.social a {
   color: #fff;
   text-decoration: none;
   font-size: 16px;
   font-weight: 500;
-  position: relative;
   transition: color 0.3s ease;
 }
 
-footer .social a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -4px;
-  width: 0;
-  height: 2px;
-  background: #ff4d00;
-  transition: width 0.3s ease;
+.social a:hover {
+  color: #d4af37; /* Dorado elegante */
 }
 
-footer .social a:hover {
-  color: #ff4d00;
-}
-
-footer .social a:hover::after {
-  width: 100%;
+.social i {
+  margin-right: 8px;
 }
