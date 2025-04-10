@@ -17,8 +17,8 @@ const Products = ({ addToCart }) => {
 
   return (
     <>
-      <div style={{ padding: '40px' }}>
-        <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '20px' }}>🛍️ Nuestros Productos</h2>
+      <div className="products-container">
+      <h1 className="fade-in-title">Nuestros Productos</h1>
         <div className="product-list">
           {products.map(product => (
             <ProductCard key={product._id} product={product} addToCart={addToCart} />

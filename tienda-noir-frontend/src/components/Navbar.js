@@ -4,17 +4,28 @@ import '../styles/navbar.css';
 
 const Navbar = ({ user, onLogout }) => {
   const [menuVisible, setMenuVisible] = useState(false);
-
+  const [menuOpen, setMenuOpen] = useState(false);
+  const toggleResponsiveMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
   return (
     <nav>
       <h1>NOIR</h1>
-      <ul>
+
+      {/* Botón hamburguesa */}
+      <div className="hamburger" onClick={toggleResponsiveMenu}>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      {/* Menú principal */}
+      <ul className={menuOpen ? 'nav-links open' : 'nav-links'}>
         <li><Link to="/">INICIO</Link></li>
         <li><Link to="/products">PRODUCTOS</Link></li>
         <li><Link to="/checkout">CARRITO</Link></li>
 
         {user ? (
-          // Si el usuario está logueado, mostramos el icono del muñeco
           <li className="user-menu">
             <span onClick={() => setMenuVisible(!menuVisible)}>👤</span>
             {menuVisible && (
@@ -25,10 +36,9 @@ const Navbar = ({ user, onLogout }) => {
             )}
           </li>
         ) : (
-          // Si no hay usuario, mostramos los botones de Login y Registro
           <>
-            <li><Link to="/login">INICIAR SESION</Link></li>
-            <li><Link to="/register">RESGISTRARSE</Link></li>
+            <li><Link to="/login">INICIAR SESIÓN</Link></li>
+            <li><Link to="/register">REGISTRARSE</Link></li>
           </>
         )}
       </ul>

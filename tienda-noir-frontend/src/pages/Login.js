@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { login } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
+import '../styles/login.css';
+import backgroundImage from '../assets/fondo2.jpg';
 
 const Login = ({ setUser }) => {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -22,11 +24,27 @@ const Login = ({ setUser }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input type="email" name="email" placeholder="Correo" onChange={handleChange} />
-      <input type="password" name="password" placeholder="Contraseña" onChange={handleChange} />
-      <button type="submit">Iniciar Sesión</button>
-    </form>
+    <div
+      className="login-wrapper"
+      style={{ backgroundImage: `url(${backgroundImage})` }}
+    >
+      <div className="login-container">
+        <form onSubmit={handleSubmit}>
+          <h2>LOGIN</h2>
+          <input type="email" name="email" placeholder="Correo" onChange={handleChange} />
+          <input type="password" name="password" placeholder="Contraseña" onChange={handleChange} />
+          <button type="submit">Iniciar Sesión</button>
+        </form>
+        <div className="login-image">
+          <img
+            src="/img/logo.svg"
+            alt="Login"
+            className="login-side-image"
+          />
+
+        </div>
+      </div>
+    </div>
   );
 };
 
