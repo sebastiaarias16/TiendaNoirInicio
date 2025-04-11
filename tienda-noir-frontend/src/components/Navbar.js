@@ -23,7 +23,7 @@ const Navbar = ({ user, onLogout }) => {
       <ul className={menuOpen ? 'nav-links open' : 'nav-links'}>
         <li><Link to="/">INICIO</Link></li>
         <li><Link to="/products">PRODUCTOS</Link></li>
-        <li><Link to="/checkout">CARRITO</Link></li>
+        {user && <li><Link to="/checkout">CARRITO</Link></li>}
 
         {user ? (
           <li className="user-menu">

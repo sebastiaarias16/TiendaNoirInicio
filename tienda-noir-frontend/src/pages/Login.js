@@ -29,20 +29,13 @@ const Login = ({ setUser }) => {
       style={{ backgroundImage: `url(${backgroundImage})` }}
     >
       <div className="login-container">
-        <form onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={handleSubmit}>
           <h2>LOGIN</h2>
           <input type="email" name="email" placeholder="Correo" onChange={handleChange} />
           <input type="password" name="password" placeholder="Contraseña" onChange={handleChange} />
           <button type="submit">Iniciar Sesión</button>
+          <p className="login-link">¿No tienes una cuenta? <a href="/Register">Registrate</a></p>
         </form>
-        <div className="login-image">
-          <img
-            src="/img/logo.svg"
-            alt="Login"
-            className="login-side-image"
-          />
-
-        </div>
       </div>
     </div>
   );

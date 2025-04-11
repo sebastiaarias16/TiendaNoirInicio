@@ -1,151 +1,142 @@
 @keyframes fadeInSlide {
-    0% {
-        opacity: 0;
-        transform: translateY(30px);
-    }
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
 
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
+  from {
+    opacity: 0;
+  }
 
-    to {
-        opacity: 1;
-    }
+  to {
+    opacity: 1;
+  }
+}
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
 .login-wrapper {
-    height: 100vh;
-    width: 100%;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    animation: fadeIn 1s ease forwards;
+  height: 100vh;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  animation: fadeIn 1s ease forwards;
 }
 
 .login-wrapper::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(6px);
-    z-index: 1;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  z-index: 1;
 }
 
 .login-container {
-    z-index: 2;
-    position: relative;
-    display: flex;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    padding: 40px;
-    max-width: 900px;
-    width: 90%;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
-    color: white;
-    gap: 30px;
-    backdrop-filter: blur(10px);
-    animation: fadeInSlide 0.8s ease forwards;
-    opacity: 0;
-    /* animación parte de invisible */
+  z-index: 2;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: fadeInSlide 1s ease forwards;
+  box-sizing: border-box;
 }
 
-form {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.login-form h2 {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
 }
 
-form h2 {
-    font-size: 2rem;
-    text-align: center;
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-    animation: fadeIn 1s ease-in forwards;
+.login-form input {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
 }
 
-input {
-    padding: 12px 16px;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
+.login-form button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-button {
-    padding: 12px;
-    border: none;
-    border-radius: 30px;
-    background-color: #ff4d00;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s ease;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-size: 1rem;
+.login-form button:hover {
+  background-color: #FFD700;
+  color: black;
 }
 
-button:hover {
-    background-color: #FFD700;
-    color: black;
+.register-link {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
 }
 
-.login-image {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.register-link a {
+  color: #000;
+  text-decoration: none;
 }
 
-.login-side-image {
-    max-width: 100%;
-    height: auto;
-    animation: fadeIn 1.5s ease forwards;
+.register-link a:hover {
+  text-decoration: underline;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
-    .login-container {
-      flex-direction: column;
-      padding: 30px 20px;
-      gap: 20px;
-      max-width: 95%;
-    }
-  
-    .login-image {
-      display: none; /* Ocultamos la imagen en pantallas pequeñas */
-    }
-  
-    form h2 {
-      font-size: 1.8rem;
-    }
-  
-    input, button {
-      font-size: 0.95rem;
-      padding: 10px 14px;
-    }
+  .login-container {
+    padding: 30px 20px;
   }
-  
-  @media (max-width: 480px) {
-    .login-wrapper {
-      padding: 20px;
-    }
-  
-    form h2 {
-      font-size: 1.6rem;
-    }
-  
-    button {
-      padding: 10px;
-      font-size: 0.9rem;
-    }
+
+  .login-form h2 {
+    font-size: 1.8rem;
   }
+
+  .login-form input,
+  button {
+    font-size: 0.95rem;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-wrapper {
+    padding: 20px;
+  }
+
+  .login-form h2 {
+    font-size: 1.6rem;
+  }
+
+  .login-form button {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}

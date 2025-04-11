@@ -1,0 +1,142 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+.register-wrapper {
+    height: 100vh;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    animation: fadeIn 1s ease forwards;
+  }
+  
+  .register-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1;
+    position: relative; 
+    z-index: 2;
+  }
+
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.register-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+.register-form h2 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #333;
+}
+
+.register-form input {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.register-form input:focus {
+    border-color: #000;
+    outline: none;
+}
+
+.register-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.register-form button:hover {
+    background-color: #FFD700;
+  color: black;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.login-link a {
+    color: #000;
+    text-decoration: none;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* 🔁 RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .register-form {
+        padding: 1.5rem;
+        border-radius: 10px;
+    }
+
+    .register-form h2 {
+        font-size: 1.5rem;
+    }
+
+    .register-form input,
+    .register-form button {
+        font-size: 0.95rem;
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-wrapper {
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+
+    .register-form {
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .register-form h2 {
+        font-size: 1.3rem;
+    }
+
+    .register-form input,
+    .register-form button {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+
+    .login-link {
+        font-size: 0.85rem;
+    }
+}

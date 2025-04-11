@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { register } from '../api/auth';
+import '../styles/register.css';
+import backgroundImage from '../assets/fondo2.jpg';
 
 const Register = () => {
     const [form, setForm] = useState({ name: '', email: '', password: '' });
@@ -15,12 +17,42 @@ const Register = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <input type="text" name="name" placeholder="Nombre" onChange={handleChange} />
-            <input type="email" name="email" placeholder="Correo" onChange={handleChange} />
-            <input type="password" name="password" placeholder="Contraseña" onChange={handleChange} />
-            <button type="submit">Registrarse</button>
-        </form>
+        <div
+              className="register-wrapper"
+              style={{ backgroundImage: `url(${backgroundImage})` }}
+            >
+        <div className="register-container">
+            <form className="register-form" onSubmit={handleSubmit}>
+                <h2>Crear Cuenta</h2>
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="Nombre"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                />
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Correo electrónico"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                />
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Contraseña"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                />
+                <button type="submit">Registrarse</button>
+                <p className="login-link">¿Ya tienes una cuenta? <a href="/login">Inicia sesión</a></p>
+            </form>
+        </div>
+        </div>
     );
 };
 

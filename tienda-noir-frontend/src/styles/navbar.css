@@ -8,9 +8,16 @@ nav {
   background-color: #000;
   padding: 25px 40px;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
-  position: relative;
+  position: fixed; /* 👈 fijar en la parte superior */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; 
 }
 
+main, .main-content, .page-content {
+  padding-top: 90px;
+}
 
 nav h1 {
   color: #ffffff;
