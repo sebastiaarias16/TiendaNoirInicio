@@ -1,0 +1,25 @@
+/* src/styles/verify.css */
+.verify-container {
+    text-align: center;
+    padding: 40px;
+    color: white;
+    background: #121212;
+    min-height: 100vh;
+  }
+  
+  .success h2 {
+    color: #4caf50;
+  }
+  
+  .error h2 {
+    color: #f44336;
+  }
+  
+  .verify-container a {
+    display: inline-block;
+    margin-top: 20px;
+    color: #2196f3;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  

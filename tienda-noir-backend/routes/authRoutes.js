@@ -1,87 +1,127 @@
 const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { check, validationResult } = require('express-validator');
-const User = require('../models/User');
+const nodemailer = require('nodemailer');
+const sendVerificationEmail = require('../utils/sendEmail');
+const crypto = require('crypto');
+const authMiddleware = require('../middleware/authMiddleware');
 
-const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
-// 🔹 Registro de usuario
-router.post('/register', [
-    check('name', 'El nombre es obligatorio').not().isEmpty(),
-    check('email', 'Incluye un email válido').isEmail(),
-    check('password', 'La contraseña debe tener al menos 6 caracteres').isLength({ min: 6 })
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+// Transportador de correos
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
 
+// 🟢 REGISTRO con confirmación
+router.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
-
+  
     try {
-        let user = await User.findOne({ email });
-        if (user) return res.status(400).json({ msg: 'El usuario ya existe' });
-
-        user = new User({ name, email, password });
-
-        // Encriptar contraseña
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
-
-        await user.save();
-
-        // Generar token
-        const payload = { user: { id: user.id } };
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-        });
-
-    } catch (err) {
-        res.status(500).send('Error en el servidor');
+      // Verificar si ya existe un usuario
+      const existingUser = await User.findOne({ email });
+      if (existingUser) return res.status(400).json({ error: 'Ya existe una cuenta con ese correo.' });
+  
+      // Encriptar contraseña
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Generar token único
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+  
+      // Crear usuario
+      const newUser = new User({
+        name,
+        email,
+        password: hashedPassword,
+        verificationToken
+      });
+  
+      await newUser.save();
+  
+      // Enviar email de verificación
+      await sendVerificationEmail(email, verificationToken);
+  
+      res.status(201).json({ message: 'Usuario registrado. Revisa tu correo para verificar tu cuenta.' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error al registrar usuario.' });
     }
-});
+  });
 
-// 🔹 Login de usuario
-router.post('/login', [
-    check('email', 'Incluye un email válido').isEmail(),
-    check('password', 'La contraseña es requerida').exists()
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+// 🟢 Confirmación de cuenta
+router.get('/verify/:token', async (req, res) => {
+    const { token } = req.params;
+  
+    try {
+      const user = await User.findOne({ verificationToken: token });
+  
+      if (!user) {
+        return res.status(400).json({ error: 'Token inválido o ya verificado' });
+      }
+  
+      user.verified = true;
+      user.verificationToken = undefined;
+      await user.save();
+  
+      res.json({ message: '✅ Tu cuenta ha sido verificada exitosamente.' });
+    } catch (error) {
+      res.status(500).json({ error: '❌ Error al verificar cuenta.' });
+    }
+  });
 
+  router.post('/login', async (req, res) => {
     const { email, password } = req.body;
-
+  
     try {
-        let user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ msg: 'Credenciales inválidas' });
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ msg: 'Credenciales inválidas' });
-
-        // Generar token
-        const payload = { user: { id: user.id } };
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-        });
-
-    } catch (err) {
-        res.status(500).send('Error en el servidor');
+      const user = await User.findOne({ email });
+  
+      if (!user) {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+  
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ error: 'Contraseña incorrecta' });
+      }
+  
+      if (!user.verified) {
+        return res.status(403).json({ error: 'Debes verificar tu cuenta primero' });
+      }
+  
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  
+      res.status(200).json({
+        message: 'Inicio de sesión exitoso',
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Error en el servidor' });
     }
-});
+  });
 
-// 🔹 Obtener datos del usuario autenticado
-router.get('/user', async (req, res) => {
+
+  router.get('/user', authMiddleware, async (req, res) => {
     try {
-        const token = req.header('x-auth-token');
-        if (!token) return res.status(401).json({ msg: 'No hay token, autorización denegada' });
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.user.id).select('-password');
-        res.json(user);
+      const user = await User.findById(req.user).select('-password');
+      if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+  
+      res.json(user);
     } catch (err) {
-        res.status(401).json({ msg: 'Token no válido' });
+      console.error('Error al obtener el usuario:', err);
+      res.status(500).json({ error: 'Error al obtener el usuario' });
     }
-});
+  });
 
 module.exports = router;

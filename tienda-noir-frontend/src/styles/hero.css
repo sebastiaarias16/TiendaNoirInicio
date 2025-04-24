@@ -10,7 +10,6 @@
   color: #fff;
   transition: background-image 1s ease-in-out;
   font-family: 'Cinzel', serif;
-
 }
 
 .hero .overlay {
@@ -26,7 +25,7 @@
   text-align: center;
   z-index: 1;
   padding: 0 1.5rem;
-
+  padding-top: 160px;
 }
 
 .hero h2 {

@@ -9,6 +9,9 @@ html, body {
   height: 100%;
   background-color: #000; /* o el fondo que uses */
 }
+main {
+  padding-top: 100px; /* este es el importante */
+}
 
 .App {
   text-align: center;

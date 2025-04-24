@@ -9,6 +9,7 @@ const productRoutes = require('./routes/productRoutes'); // Rutas de productos
 const orderRoutes = require('./routes/orderRoutes');
 const authRoutes = require('./routes/authRoutes'); //Ruta de autenticacion
 
+
 connectDB();
 
 const app = express();

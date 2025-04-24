@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { fetchCartItems } from '../api/api';
 import ProductCard from '../components/ProductCard';
-import '../styles/products.css';
 import Footer from '../components/Footer';
+import { CartContext } from '../CartContext';
+import '../styles/products.css';
 
-const Products = ({ addToCart }) => {
+const Products = () => {
   const [products, setProducts] = useState([]);
+  const { addToCart } = useContext(CartContext);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -18,10 +20,14 @@ const Products = ({ addToCart }) => {
   return (
     <>
       <div className="products-container">
-      <h1 className="fade-in-title">Nuestros Productos</h1>
+        <h1 className="fade-in-title">Nuestros Productos</h1>
         <div className="product-list">
           {products.map(product => (
-            <ProductCard key={product._id} product={product} addToCart={addToCart} />
+            <ProductCard
+              key={product._id}
+              product={product}
+              addToCart={addToCart}
+            />
           ))}
         </div>
       </div>
