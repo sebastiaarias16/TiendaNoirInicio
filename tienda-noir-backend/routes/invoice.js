@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const generateInvoicePDF = require('../utils'); // Ajusta si está en otro lado
+const generateInvoicePDF = require('../utils/generateInvoicePDF'); // Ajusta si está en otro lado
 const path = require('path');
 
 router.post('/generate-invoice', (req, res) => {
