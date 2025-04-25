@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../CartContext';
 import { FaShoppingCart } from 'react-icons/fa';
+
 import '../styles/navbar.css';
 
 const Navbar = ({ user, onLogout }) => {
@@ -64,7 +65,7 @@ const Navbar = ({ user, onLogout }) => {
         )}
 
         <div className="navbar-cart">
-          <Link to="/checkout" className="cart-icon">
+          <Link to="/checkout" className={`cart-icon ${animate ? 'animate' : ''}`}>
             <FaShoppingCart size={24} />
             {cartItemCount > 0 && (
               <span ref={badgeRef} className={`cart-count ${animate ? 'cart-badge' : ''}`}>

@@ -152,6 +152,33 @@ nav ul li a:hover {
   }
 }
 
+.cart-icon {
+  color: #FFD700;
+}
+
+.cart-icon.animate {
+  animation: shake 0.4s ease;
+  display: inline-block;
+  position: relative;
+  color: #ffffff; /* blanco */
+}
+
+.cart-icon:hover {
+  color: #ffffff;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background-color: red;
+  color: white;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-size: 12px;
+  animation: bounce 0.3s ease;
+}
 
 @media (max-width: 768px) {
   nav {
@@ -190,6 +217,7 @@ nav ul li a:hover {
   }
 }
 
+
 @media (max-width: 480px) {
   nav {
     padding: 15px;
@@ -223,21 +251,3 @@ nav ul li a:hover {
   100% { transform: translateX(0); }
 }
 
-.cart-icon.animate {
-  animation: shake 0.4s ease;
-  display: inline-block;
-  position: relative;
-}
-
-.cart-badge {
-  position: absolute;
-  top: -5px;
-  right: -10px;
-  background-color: red;
-  color: white;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 50%;
-  font-size: 12px;
-  animation: bounce 0.3s ease;
-}

@@ -1,3 +1,5 @@
+import '../styles/productCard.css';
+
 const ProductCard = ({ product, addToCart }) => (
     <div className="product-card">
       <img src={`http://localhost:3000/uploads/${product.imagen[0]}`} alt={product.nombre} />
