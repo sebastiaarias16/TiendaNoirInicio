@@ -1,3 +1,4 @@
+/* Estilos Generales */
 .main-content {
   padding-top: 130px;
 }
@@ -9,8 +10,8 @@
   margin: auto;
   padding: 2rem;
   font-family: 'Poppins', 'Segoe UI', sans-serif;
-  background-color: #0c0c0c;
-  color: #f4f4f4;
+  background-color: #ffffff;
+  color: #000000;
   border: 1px solid #1f1f1f;
   box-shadow: 0 0 25px rgba(255, 255, 255, 0.05);
   border-radius: 14px;
@@ -24,6 +25,7 @@
   color: #fcc329;
 }
 
+/* Lista de Productos en el Carrito */
 .cart-list {
   list-style: none;
   padding: 0;
@@ -42,6 +44,7 @@
   color: #eee;
 }
 
+/* Información del Producto en el Carrito */
 .item-info {
   display: flex;
   justify-content: space-between;
@@ -49,6 +52,7 @@
   font-size: 1.1rem;
 }
 
+/* Opciones de Producto */
 .item-options label {
   display: block;
   margin-top: 0.5rem;
@@ -67,6 +71,7 @@
   border-radius: 5px;
 }
 
+/* Controles de Cantidad */
 .quantity-controls {
   display: flex;
   align-items: center;
@@ -88,6 +93,7 @@
   background-color: #a30000;
 }
 
+/* Botón de Eliminar Producto */
 .remove-button {
   background-color: #8b0000;
   color: white;
@@ -104,6 +110,7 @@
   background-color: #a30000;
 }
 
+/* Resumen de la Compra */
 .checkout-summary {
   margin-top: 2rem;
   font-size: 1rem;
@@ -115,6 +122,7 @@
   color: #ccc;
 }
 
+/* Campos de Entrada (Input y Select) */
 input, select {
   background-color: #1a1a1a;
   color: #fff;
@@ -125,6 +133,7 @@ input, select {
   margin-top: 0.3rem;
 }
 
+/* Botones de Checkout */
 .checkout-button,
 .payment-button,
 .invoice-button {
@@ -146,6 +155,7 @@ input, select {
   background-color: #292929;
 }
 
+/* Mensajes de Checkout */
 .checkout-message {
   margin-top: 1rem;
   font-weight: bold;
@@ -158,7 +168,7 @@ input, select {
   padding: 2rem;
 }
 
-/* Responsive */
+/* Estilos Responsivos */
 @media (max-width: 600px) {
   .cart-item {
     flex-direction: column;
@@ -167,5 +177,39 @@ input, select {
   .item-info,
   .item-options {
     flex-direction: column;
+  }
+
+  /* Ajustes a los botones */
+  .checkout-button,
+  .payment-button,
+  .invoice-button {
+    padding: 10px 16px;
+    font-size: 1rem;
+  }
+
+  /* Ajustes a los campos de formulario */
+  input, select {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 400px) {
+  .checkout-header {
+    font-size: 2rem;
+  }
+
+  .checkout-button,
+  .payment-button,
+  .invoice-button {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+
+  .item-info {
+    font-size: 1rem;
+  }
+
+  .checkout-summary {
+    font-size: 0.9rem;
   }
 }

@@ -135,7 +135,7 @@ const Checkout = () => {
           initial={{ x: -30, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
         >
-          Finaliza tu compra - NOIR
+          Finaliza tu compra
         </motion.h2>
 
         {!cartItems.length ? (

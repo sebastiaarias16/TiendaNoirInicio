@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../CartContext';
-import { FaShoppingCart } from 'react-icons/fa';
+import 'font-awesome/css/font-awesome.min.css';  // Ya no es necesario, lo eliminaremos si usas Material Icons.
 
 import '../styles/navbar.css';
 
@@ -11,17 +11,20 @@ const Navbar = ({ user, onLogout }) => {
   const [animate, setAnimate] = useState(false);
   const badgeRef = useRef();
 
+  // Obtén la cantidad de artículos en el carrito desde el contexto
   const { cartItems } = useContext(CartContext);
   const cartItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
+  // Toggle para el menú responsive
   const toggleResponsiveMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
+  // Animación para el contador de artículos en el carrito
   useEffect(() => {
     if (badgeRef.current) {
       badgeRef.current.classList.remove('cart-badge');
-      void badgeRef.current.offsetWidth; // ⚠️ Forzar reflow para reiniciar la animación
+      void badgeRef.current.offsetWidth; // Forzar reflow para reiniciar la animación
       badgeRef.current.classList.add('cart-badge');
     }
 
@@ -47,13 +50,16 @@ const Navbar = ({ user, onLogout }) => {
         <li><Link to="/">INICIO</Link></li>
         <li><Link to="/products">PRODUCTOS</Link></li>
 
+        {/* Menú de usuario */}
         {user ? (
           <li className="user-menu">
-            <span onClick={() => setMenuVisible(!menuVisible)}>👤</span>
+            <span onClick={() => setMenuVisible(!menuVisible)} className="user-icon">
+              <span className="material-icons">person</span>
+            </span>
             {menuVisible && (
               <ul className="dropdown">
-                <li><Link to="/orders">📦 Mis Compras</Link></li>
-                <li><button onClick={onLogout}>🚪 Cerrar Sesión</button></li>
+                <li><Link to="/orders" className="dropdown-item">Mis Compras</Link></li>
+                <li><button onClick={onLogout} className="dropdown-item logout-btn">Cerrar Sesión</button></li>
               </ul>
             )}
           </li>
@@ -64,9 +70,14 @@ const Navbar = ({ user, onLogout }) => {
           </>
         )}
 
+        {/* Icono del carrito */}
         <div className="navbar-cart">
           <Link to="/checkout" className={`cart-icon ${animate ? 'animate' : ''}`}>
-            <FaShoppingCart size={24} />
+            {/* Ícono de carrito usando Material Icons */}
+            <span className="material-icons" style={{ fontSize: 24 }}>
+              shopping_cart
+            </span>
+
             {cartItemCount > 0 && (
               <span ref={badgeRef} className={`cart-count ${animate ? 'cart-badge' : ''}`}>
                 {cartItemCount}
@@ -80,5 +91,3 @@ const Navbar = ({ user, onLogout }) => {
 };
 
 export default Navbar;
-
-        //{user && <li><Link to="/checkout">CARRITO</Link></li>}
