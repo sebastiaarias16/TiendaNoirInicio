@@ -112,8 +112,9 @@ const Checkout = () => {
       <main className="main-content">
       <motion.div
         className="checkout-auth-warning"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       >
         <h2>🔒 Debes iniciar sesión para comprar</h2>
         <Link to="/login">Iniciar Sesión</Link> | <Link to="/register">Registrarse</Link>

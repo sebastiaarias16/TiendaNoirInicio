@@ -82,6 +82,18 @@ const productos = [
     ],
     tallas: ['S', 'M'],
     colores: ['Negro']
+  },
+  {
+    nombre: 'Conjunto Camiseta y Pantaloneta',
+    precio: 110000,
+    descripcion: 'Conjunto hombre.',
+    stock: 6,
+    categoria: 'Conjunto',
+    imagen: [
+      'ConjuntoHombre.png'        // Negro
+    ],
+    tallas: ['S', 'M'],
+    colores: ['Negro']
   }
 ];
 
