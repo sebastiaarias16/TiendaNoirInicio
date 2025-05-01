@@ -1,12 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
 
 .cta {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/fondo2.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/FondoCTA.jpg');
   background-size: cover;
   background-position: center;
-  padding: 120px 20px;
+  padding: 400px 20px;
   text-align: center;
   color: white;
+}
+
+@media (max-width: 768px) {
+  .cta {
+    background-size: cover; /* En móviles puedes preferir que se ajuste al ancho */
+    padding: 100px 20px;
+  }
+
+  .cta h2 {
+    font-size: 32px;
+  }
+
+  .cta button {
+    font-size: 0.9rem;
+    padding: 12px 28px;
+  }
 }
 
 .cta h2 {

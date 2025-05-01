@@ -10,28 +10,47 @@
   text-align: center;
 }
 
+.carousel-slide {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s ease-in-out;
+}
+
 .carousel-slide img {
   width: 100%;
   height: 300px;
   object-fit: cover;
   border-radius: 10px;
-}
-
-.carousel-slide {
-  background: #1a1a1a;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  margin-bottom: 15px;
 }
 
 .carousel-slide h3 {
   color: #fff;
-  font-size: 22px;
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 
 .carousel-slide p {
-  font-size: 20px;
+  font-size: 22px;
   color: #ff4d00;
+  margin-bottom: 15px;
+}
+
+.carousel-slide button {
+  padding: 10px 20px;
+  background-color: #ff4d00;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.carousel-slide button:hover {
+  background-color: #e64000;
 }
 
 .carousel-arrow {
