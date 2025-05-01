@@ -20,7 +20,7 @@ const Products = () => {
   return (
     <>
       <div className="products-container">
-        <h1 className="products-title fade-in-titl">FIRST NOIR COLECCTION</h1>
+        <h1 className="products-title fade-in-titl">NOIR COLECCTION</h1>
         <div className="product-list">
           {products.map(product => (
             <ProductCard

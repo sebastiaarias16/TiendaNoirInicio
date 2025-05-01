@@ -48,10 +48,10 @@
 }
 
 .product-card button {
-  background-color: #f1f1f1;
+  background-color: #000000;
   border: none;
   padding: 8px 16px;
-  border-radius: 20px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.3s ease;
