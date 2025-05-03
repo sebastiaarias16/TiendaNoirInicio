@@ -10,6 +10,7 @@ import { getUser, logout } from './api/auth';
 import './styles/navbar.css';
 import '../src/App.css';
 import Verify from './pages/Verify';
+import Orders from './pages/Orders';
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -27,6 +28,14 @@ const App = () => {
     setUser(null);
   };
 
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (storedUser) {
+      setUser(storedUser);
+    }
+  }, []);
+  
+
   return (
     <Router>
       <Navbar user={user} onLogout={handleLogout} />
@@ -37,6 +46,7 @@ const App = () => {
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify/:token" element={<Verify />} />
+        <Route path="/orders" element={<Orders />} />
       </Routes>
     </Router>
   );

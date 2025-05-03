@@ -22,6 +22,7 @@ app.use('/api/products', productRoutes); // 🔥 Asegurar ruta de productos
 app.use('/api/orders', orderRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+
 app.get('/', (req, res) => {
     res.send('🖤 Tienda Noir API funcionando...');
 });

@@ -9,9 +9,14 @@ export const register = async (userData) => {
 
 export const login = async (userData) => {
     const res = await axios.post(`${API_URL}/login`, userData);
-    localStorage.setItem('token', res.data.token); // Guarda el token
-    return res.data;
+    
+    // Guarda el token y el usuario en localStorage
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('user', JSON.stringify(res.data.user));
+    
+    return res.data.user; // Retorna el usuario para setUser()
 };
+
 
 export const getUser = async () => {
     const token = localStorage.getItem('token');
@@ -32,3 +37,4 @@ export const getUser = async () => {
 export const logout = () => {
     localStorage.removeItem("token"); // Eliminamos el token
 };
+
