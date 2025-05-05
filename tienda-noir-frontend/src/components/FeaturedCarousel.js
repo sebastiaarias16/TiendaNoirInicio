@@ -11,7 +11,7 @@ const FeaturedCarousel = () => {
 
   // Cargar productos destacados
   useEffect(() => {
-    axios.get('http://localhost:3000/api/products/featured')
+    axios.get('https://noir-backend-z409.onrender.com/api/products/featured')
       .then(res => {
         if (Array.isArray(res.data)) {
           setFeatured(res.data);
@@ -48,7 +48,7 @@ const FeaturedCarousel = () => {
           >
             {featured[currentIndex].imagen?.[0] && (
               <img
-                src={`http://localhost:3000/uploads/${featured[currentIndex].imagen[0]}`}
+                src={`https://noir-backend-z409.onrender.com/uploads/${featured[currentIndex].imagen[0]}`}
                 alt={featured[currentIndex].nombre}
               />
             )}
