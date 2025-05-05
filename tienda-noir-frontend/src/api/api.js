@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://noir-backend-z409.onrender.com';
 
 // 📌 Obtener productos del carrito desde la API
 export const fetchCartItems = async () => {
