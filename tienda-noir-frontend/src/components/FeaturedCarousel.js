@@ -1,4 +1,3 @@
-// src/components/FeaturedCarousel.js
 import { useEffect, useState, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -10,9 +9,9 @@ const FeaturedCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { addToCart } = useContext(CartContext);
 
-  // Obtener productos destacados
+  // Cargar productos destacados
   useEffect(() => {
-    axios.get('http://localhost:3000/api/products/featured')
+    axios.get('https://noir-backend-z409.onrender.com/api/products/featured')
       .then(res => {
         if (Array.isArray(res.data)) {
           setFeatured(res.data);
@@ -25,21 +24,15 @@ const FeaturedCarousel = () => {
       });
   }, []);
 
-  // Autoplay
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev + 1) % featured.length);
-    }, 4000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [featured]);
 
   const nextSlide = () => setCurrentIndex(prev => (prev + 1) % featured.length);
   const prevSlide = () => setCurrentIndex(prev => (prev - 1 + featured.length) % featured.length);
-
-  const handleAddToCart = () => {
-    const product = featured[currentIndex];
-    addToCart(product);
-  };
 
   return (
     <div className="carousel-container">
@@ -50,26 +43,24 @@ const FeaturedCarousel = () => {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.8 }}
-            className="carousel-slide"
+            transition={{ duration: 0.6 }}
+            className="carousel-slide featured-product"
           >
-            {featured[currentIndex].image && (
+            {featured[currentIndex].imagen?.[0] && (
               <img
-                src={
-                  featured[currentIndex].image.startsWith('http')
-                    ? featured[currentIndex].image
-                    : `http://localhost:3000/${featured[currentIndex].image}`
-                }
-                alt={featured[currentIndex].name}
+                src={`https://noir-backend-z409.onrender.com/uploads/${featured[currentIndex].imagen[0]}`}
+                alt={featured[currentIndex].nombre}
               />
             )}
-            <h3>{featured[currentIndex].name}</h3>
-            <p>${featured[currentIndex].price}</p>
-            <button onClick={() => addToCart(featured[currentIndex])}>Agregar al carrito</button>
+            <h3>{featured[currentIndex].nombre}</h3>
+            <p>{featured[currentIndex].descripcion}</p>
+            <p><strong>${featured[currentIndex].precio.toLocaleString()}</strong></p>
+            <button onClick={() => addToCart(featured[currentIndex])}>
+              Agregar al carrito
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
-
 
       <button className="carousel-arrow left" onClick={prevSlide}>⬅</button>
       <button className="carousel-arrow right" onClick={nextSlide}>➡</button>

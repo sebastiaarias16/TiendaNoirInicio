@@ -12,7 +12,7 @@ const Verify = () => {
     useEffect(() => {
         const verifyAccount = async () => {
             try {
-                const res = await axios.get(`http://localhost:3000/api/auth/verify/${token}`);
+                const res = await axios.get(`https://noir-backend-z409.onrender.com/api/auth/verify/${token}`);
                 setMessage(res.data.message || 'Cuenta verificada exitosamente.');
                 setSuccess(true);
             } catch (error) {
