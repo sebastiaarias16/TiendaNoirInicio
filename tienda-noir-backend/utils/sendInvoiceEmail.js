@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 
 const sendInvoiceEmail = async (email, name, pdfPath) => {
   const mailOptions = {
-    from: 'Noir 🖤 <noir.tienda@gmail.com>',
+    from: 'Noir 🖤 <noiroff2025@gmail.com>',
     to: email,
     subject: '¡Gracias por tu compra en Noir!',
     text: `Hola ${name}, gracias por confiar en nosotros. 🖤\nAdjuntamos tu factura de compra.\n\nDisfruta de tu estilo Noir.\n\n- Equipo Noir`,
