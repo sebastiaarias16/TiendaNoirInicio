@@ -16,8 +16,7 @@ const app = express();
 
 // CORS configurado dinámicamente
 const allowedOrigins = [
-  'http://localhost:3000',
-  'https://tiendanoir.vercel.app'
+  'https://noirshop.vercel.app'
 ];
 
 app.use(cors({
