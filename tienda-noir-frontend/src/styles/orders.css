@@ -3,7 +3,7 @@
     margin: 40px auto;
     padding: 20px;
     padding-top: 80px;
-    background: #111;
+    background: #000000;
     color: #fff;
     border-radius: 10px;
   }
@@ -17,9 +17,9 @@
     box-shadow: 0 0 8px rgba(255, 77, 0, 0.4);
   }
   
-  .order-card h3 {
-    margin-bottom: 10px;
-    color: #ff4d00;
+  .order-card h3,h2 {
+    margin-bottom: 20px;
+    color: #ffffff;
   }
   
   .order-card p {

@@ -191,7 +191,7 @@ nav ul li a:hover {
   flex-direction: column;
   gap: 5px;
   cursor: pointer;
-  position: absolute;
+  position: flex;
   right: 40px;
   top: 30px;
   z-index: 20;
@@ -229,7 +229,7 @@ nav ul li a:hover {
     flex-direction: column;
     background-color: #000;
     position: absolute;
-    top: 80px;
+    top: 0;
     left: 0;
     width: 100%;
     z-index: 10;

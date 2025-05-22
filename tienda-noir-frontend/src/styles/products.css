@@ -3,7 +3,7 @@
 .products-container {
   background-color: #ffffff;
   color: rgb(0, 0, 0);
-  margin: 0 auto; 
+  margin: 0 auto;
   padding: 40px 20px;
   padding-top: 110px;
 }
@@ -15,10 +15,21 @@
   color: #000000;
   text-align: left;
   padding-left: 40px;
+  padding-right: 40px; /* 🔧 Añadido para evitar que el texto choque con los bordes */
   text-transform: uppercase;
   letter-spacing: 1.2px;
   margin-bottom: 40px;
   animation: fadeIn 1.0s ease-in-out;
+  word-wrap: break-word; /* 🔧 Asegura que se divida si es muy largo */
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  .products-title {
+    font-size: 2rem; /* 🔧 Reduce tamaño en móviles */
+    text-align: center; /* 🔧 Mejor centrado en pantallas pequeñas */
+    padding: 0 20px;
+  }
 }
 
 .fade-in-title {
@@ -32,20 +43,23 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 2.5rem;
-  padding: 2rem 4rem
+  padding: 2rem 4rem;
 }
 
 @media (max-width: 900px) {
   .product-list {
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en pantallas medianas */
+    grid-template-columns: repeat(2, 1fr);
+    padding: 2rem;
   }
 }
 
 @media (max-width: 600px) {
   .product-list {
-    grid-template-columns: 1fr; /* 1 columna en móviles */
+    grid-template-columns: 1fr;
+    padding: 1rem;
   }
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -45,6 +45,33 @@ const Checkout = () => {
 
   const total = cartItems.reduce((acc, item) => acc + item.precio * item.quantity, 0);
 
+  const generateWhatsappMessage = () => {
+    if (!cartItems.length) return '';
+
+    let mensaje = "Hola, quiero hacer un pedido:%0A";
+
+    cartItems.forEach(item => {
+      mensaje += `- ${item.nombre} (Talla: ${item.selectedSize}, Color: ${item.selectedColor}) x${item.quantity}: $${item.precio * item.quantity}%0A`;
+    });
+
+    mensaje += `Total: $${total}`;
+
+    return mensaje;
+  };
+  const redirectToWhatsapp = () => {
+    const telefono = "573194732613"; // Cambia aquí por tu número con código país (sin + ni espacios)
+    const mensaje = generateWhatsappMessage();
+    if (!mensaje) return alert('El carrito está vacío.');
+
+    const url = `https://wa.me/${telefono}?text=${mensaje}`;
+    window.open(url, '_blank');
+  };
+
+  const handleFinalizePurchase = async () => {
+    await handleCheckout();
+    redirectToWhatsapp();
+  };
+
   const handleCheckout = async () => {
     if (!user) return alert('Debes iniciar sesión para comprar');
     if (!cartItems.length) return setMessage('❌ El carrito está vacío.');
@@ -94,7 +121,7 @@ const Checkout = () => {
 
   const generateInvoice = async () => {
     if (!orderId) return alert('No hay orden para generar factura.');
-  
+
     try {
       const response = await fetch(`http://localhost:3000/api/invoice/generate-invoice/${orderId}`);
       const data = await response.json();
@@ -110,15 +137,15 @@ const Checkout = () => {
   if (!user) {
     return (
       <main className="main-content">
-      <motion.div
-        className="checkout-auth-warning"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
-        <h2>🔒 Debes iniciar sesión para comprar</h2>
-        <Link to="/login">Iniciar Sesión</Link> | <Link to="/register">Registrarse</Link>
-      </motion.div>
+        <motion.div
+          className="checkout-auth-warning"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <h2>🔒 Debes iniciar sesión para comprar</h2>
+          <Link to="/login">Iniciar Sesión</Link> | <Link to="/register">Registrarse</Link>
+        </motion.div>
       </main>
     );
   }
@@ -198,8 +225,9 @@ const Checkout = () => {
 
             <div className="checkout-summary">
               <h3>Total: ${total}</h3>
-
-              <label>
+              <p><strong>Por el momento, NOIR realiza pedidos únicamente en la ciudad de Bogotá.
+                Estamos trabajando para expandirnos y llegar pronto a nuevas ciudades.</strong></p>
+              {/*<label>
                 Ciudad:
                 <input type="text" value={city} onChange={e => setCity(e.target.value)} />
               </label>
@@ -208,19 +236,19 @@ const Checkout = () => {
                 Método de Pago:
                 <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
                   <option value="online">Pago en Línea</option>
-                  <option value="contra_entrega">Pago Contra Entrega</option>
+                  {/*<option value="contra_entrega">Pago Contra Entrega</option>*/}{/*
                 </select>
-              </label>
+              </label>*/}
 
-              <motion.button className="checkout-button" whileTap={{ scale: 0.95 }} onClick={handleCheckout}>
+              <motion.button className="checkout-button" whileTap={{ scale: 0.95 }} onClick={handleFinalizePurchase}>
                 Finalizar Compra
               </motion.button>
 
-              {paymentMethod === 'online' && (
+              {/*paymentMethod === 'online' && (
                 <motion.button className="payment-button" whileTap={{ scale: 0.95 }} onClick={handlePayment}>
                   Pagar con MercadoPago
                 </motion.button>
-              )}
+              )*/}
             </div>
           </>
         )}
