@@ -1,14 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const connectDB = require('./db'); // Conexión MongoDB
+const connectDB = require('./db');
 const path = require('path');
 
-const invoiceRoutes = require('./routes/invoice'); // Rutas de facturas
-const productRoutes = require('./routes/productRoutes'); // Rutas de productos
+const invoiceRoutes = require('./routes/invoice');
+const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const authRoutes = require('./routes/authRoutes'); //Ruta de autenticacion
-
+const authRoutes = require('./routes/authRoutes');
 
 connectDB();
 
@@ -16,24 +15,26 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Rutas API
 app.use('/api/auth', authRoutes);
 app.use('/api/invoice', invoiceRoutes);
-app.use('/api/products', productRoutes); // 🔥 Asegurar ruta de productos
+app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+
+// Servir imágenes u otros archivos subidos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
+// Mensaje raíz para saber que el backend está vivo
 app.get('/', (req, res) => {
-    res.send('🖤 Tienda Noir API funcionando...');
+  res.send('🖤 Tienda Noir API funcionando...');
 });
 
-
-// Servir frontend en producción
+// SERVIR FRONTEND EN PRODUCCIÓN 🔥
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
+  app.use(express.static(path.join(__dirname, 'build'))); // Asegúrate de haber movido frontend/build a backend/build
 
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../frontend', 'build', 'index.html'));
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
   });
 }
 
