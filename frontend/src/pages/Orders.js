@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../styles/orders.css';
-const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000/api";
+
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 function Orders() {
     const [orders, setOrders] = useState([]);
