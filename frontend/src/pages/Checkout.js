@@ -6,10 +6,10 @@ import axios from 'axios';
 import { CartContext } from '../CartContext';
 import { createOrder } from '../api/api';
 import { getUser } from '../api/auth';
-
+import '../styles/checkout.css';
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
-import '../styles/checkout.css';
+
 
 const Checkout = () => {
   const [message, setMessage] = useState('');
