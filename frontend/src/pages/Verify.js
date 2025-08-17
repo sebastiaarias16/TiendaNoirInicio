@@ -4,6 +4,8 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/verify.css';
 
+const API_URL = import.meta.env.VITE_BACKEND_URL;
+
 const Verify = () => {
     const { token } = useParams();
     const [message, setMessage] = useState('Verificando...');
@@ -12,7 +14,7 @@ const Verify = () => {
     useEffect(() => {
         const verifyAccount = async () => {
             try {
-                const res = await axios.get(`http://localhost:3000/api/auth/verify/${token}`);
+                const res = await axios.get(`${API_URL}/api/auth/verify/${token}`);
                 setMessage(res.data.message || 'Cuenta verificada exitosamente.');
                 setSuccess(true);
             } catch (error) {

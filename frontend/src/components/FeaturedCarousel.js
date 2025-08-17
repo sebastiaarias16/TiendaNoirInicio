@@ -4,6 +4,8 @@ import axios from 'axios';
 import { CartContext } from '../CartContext';
 import '../styles/featuredCarousel.css';
 
+const API_URL = import.meta.env.VITE_BACKEND_URL;
+
 const FeaturedCarousel = () => {
   const [featured, setFeatured] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -11,7 +13,7 @@ const FeaturedCarousel = () => {
 
   // Cargar productos destacados
   useEffect(() => {
-    axios.get('http://localhost:3000/api/products/featured')
+    axios.get(`${API_URL}/api/products/featured`)
       .then(res => {
         if (Array.isArray(res.data)) {
           setFeatured(res.data);
@@ -48,7 +50,7 @@ const FeaturedCarousel = () => {
           >
             {featured[currentIndex].imagen?.[0] && (
               <img
-                src={`http://localhost:3000/uploads/${featured[currentIndex].imagen[0]}`}
+                src={`${API_URL}/uploads/${featured[currentIndex].imagen[0]}`}
                 alt={featured[currentIndex].nombre}
               />
             )}

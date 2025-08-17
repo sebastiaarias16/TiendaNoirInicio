@@ -1,14 +1,14 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api/auth';
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const register = async (userData) => {
-    const res = await axios.post(`${API_URL}/register`, userData);
+    const res = await axios.post(`${API_URL}/api/auth/register`, userData);
     return res.data;
 };
 
 export const login = async (userData) => {
-    const res = await axios.post(`${API_URL}/login`, userData);
+    const res = await axios.post(`${API_URL}/api/auth/login`, userData);
     
     // Guarda el token y el usuario en localStorage
     localStorage.setItem('token', res.data.token);

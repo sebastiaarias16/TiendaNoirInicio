@@ -20,7 +20,7 @@ function Orders() {
   
       const fetchOrders = async () => {
         try {
-          const res = await axios.get(`http://localhost:3000/api/orders/user/${userId}`);
+          const res = await axios.get(`${API_URL}/api/orders/user/${userId}`);
           console.log('📦 Órdenes traídas:', res.data);
           setOrders(res.data);
         } catch (err) {

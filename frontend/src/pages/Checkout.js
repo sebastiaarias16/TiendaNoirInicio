@@ -7,6 +7,8 @@ import { CartContext } from '../CartContext';
 import { createOrder } from '../api/api';
 import { getUser } from '../api/auth';
 
+const API_URL = import.meta.env.VITE_BACKEND_URL;
+
 import '../styles/checkout.css';
 
 const Checkout = () => {
@@ -107,7 +109,7 @@ const Checkout = () => {
     if (!user) return alert('Debes iniciar sesión para comprar');
 
     try {
-      const response = await axios.post('http://localhost:3000/api/payment/create-payment', {
+      const response = await axios.post(`${API_URL}/api/payment/create-payment`, {
         userEmail: user.email,
         productos: cartItems.map(({ nombre, quantity, precio }) => ({ nombre, quantity, precio })),
       });
@@ -123,7 +125,7 @@ const Checkout = () => {
     if (!orderId) return alert('No hay orden para generar factura.');
 
     try {
-      const response = await fetch(`http://localhost:3000/api/invoice/generate-invoice/${orderId}`);
+      const response = await fetch(`${API_URL}/api/invoice/generate-invoice/${orderId}`);
       const data = await response.json();
       if (data.message) {
         setMessage("✅ Factura generada y enviada a tu correo. ¡Gracias por confiar en NOIR!");
