@@ -1,6 +1,6 @@
 import '../styles/productCard.css';
 
-const API_URL = import.meta.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const ProductCard = ({ product, addToCart }) => (
     <div className="product-card">

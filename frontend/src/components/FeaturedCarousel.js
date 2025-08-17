@@ -4,7 +4,7 @@ import axios from 'axios';
 import { CartContext } from '../CartContext';
 import '../styles/featuredCarousel.css';
 
-const API_URL = import.meta.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const FeaturedCarousel = () => {
   const [featured, setFeatured] = useState([]);
