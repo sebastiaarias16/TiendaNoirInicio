@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
 .hero {
   position: relative;
   background-size: cover;
@@ -9,7 +8,6 @@
   justify-content: center;
   color: #fff;
   transition: background-image 1s ease-in-out;
-  font-family: 'Cinzel', serif;
 }
 
 .hero .overlay {

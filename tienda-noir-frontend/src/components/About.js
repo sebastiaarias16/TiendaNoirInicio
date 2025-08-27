@@ -24,7 +24,7 @@ const About = () => (
   >
     <div className="about-text">
       <h3>
-        Estilo Noir <span className="heart-icon">🖤</span>
+        Estilo Noir <span className="heart-icon"></span>
       </h3>
       <p>
         Noir no es solo ropa, es una actitud. Cada prenda representa seguridad,
@@ -38,12 +38,10 @@ const About = () => (
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <motion.li variants={itemVariants}>✔️ Estilo audaz con propósito</motion.li>
-        <motion.li variants={itemVariants}>✔️ Materiales de alta calidad</motion.li>
-        <motion.li variants={itemVariants}>✔️ Hecho para líderes y disruptores</motion.li>
+        <motion.li variants={itemVariants}>Estilo audaz con propósito</motion.li>
+        <motion.li variants={itemVariants}>Materiales de alta calidad</motion.li>
+        <motion.li variants={itemVariants}>Hecho para líderes y disruptores</motion.li>
       </motion.ul>
-
-      
     </div>
 
     <motion.div
