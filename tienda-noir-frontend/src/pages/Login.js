@@ -6,6 +6,7 @@ import backgroundImage from '../assets/fondo2.jpg';
 
 const Login = ({ setUser }) => {
   const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState(""); // 🔴 Estado para el error
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -34,6 +35,9 @@ const Login = ({ setUser }) => {
           <input type="email" name="email" placeholder="Correo" onChange={handleChange} />
           <input type="password" name="password" placeholder="Contraseña" onChange={handleChange} />
           <button type="submit">Iniciar Sesión</button>
+
+          {error && <p className="error-message">{error}</p>}
+
           <p className="login-link">¿No tienes una cuenta? <a href="/Register">Registrate</a></p>
         </form>
       </div>
