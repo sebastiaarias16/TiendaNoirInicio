@@ -1,51 +1,119 @@
 .about {
-  background: linear-gradient(135deg, #0e0e0e 0%, #1a1a1a 100%);
-  padding: 60px 20px;
-  color: white;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 60px;
-  flex-wrap: wrap;
-  text-align: left;
+  padding: 4rem 8%;
+  background: linear-gradient(135deg, #000000 0%, #111111 100%);
+  color: #fff;
+  gap: 2rem;
 }
 
 .about-text {
+  flex: 1;
   max-width: 600px;
 }
 
-.about h3 {
-  font-size: 36px;
-  color: #ff4d00;
-  margin-bottom: 20px;
+.about-text h3 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #d4af37; 
+  margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
 }
 
-.about p {
-  font-size: 18px;
+.about-text h3::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, #ff8c00, #ffd700);
+  border-radius: 2px;
+}
+
+.about-text p {
+  font-size: 1.1rem;
+  color: #cccccc; /* gris suave para menos contraste */
+  margin: 1rem 0 2rem;
   line-height: 1.6;
-  color: #ddd;
-  margin-bottom: 20px;
 }
 
 .benefits {
   list-style: none;
-  padding-left: 0;
-  margin-bottom: 30px;
+  padding: 0;
+  margin: 0;
 }
 
 .benefits li {
-  margin-bottom: 10px;
-  font-size: 17px;
-  color: #f5f5f5;
+  font-size: 1rem;
+  margin: 0.8rem 0;
+  padding-left: 1.8rem;
+  position: relative;
+  color: #e6e6e6;
+  transition: color 0.3s ease;
+}
+
+.benefits li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  color: #ffd700; /* check dorado */
+  font-weight: bold;
+}
+
+.benefits li:hover {
+  color: #ffd700;
+}
+
+.about-image {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .about-image img {
+  width: 100%;
   max-width: 400px;
   border-radius: 20px;
-  box-shadow: 0 0 30px rgba(255, 77, 0, 0.25);
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  border: 2px solid #222;
+  box-shadow: 0px 0px 30px rgba(255, 215, 0, 0.25);
+  transition: box-shadow 0.3s ease;
 }
 
-.about-image:hover img {
-  box-shadow: 0 0 45px rgba(255, 77, 0, 0.5);
+.about-image img:hover {
+  box-shadow: 0px 0px 40px rgba(255, 215, 0, 0.45);
+}
+
+/* 🔹 Responsive */
+@media (max-width: 992px) {
+  .about {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .about-text h3::after {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+  }
+
+  .about-text {
+    max-width: 90%;
+  }
+
+  .benefits li {
+    padding-left: 0;
+  }
+
+  .benefits li::before {
+    position: relative;
+    margin-right: 8px;
+  }
+
+  .about-image {
+    margin-top: 2rem;
+  }
 }

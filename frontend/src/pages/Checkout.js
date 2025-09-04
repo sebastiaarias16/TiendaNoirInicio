@@ -8,6 +8,7 @@ import { createOrder } from '../api/api';
 import { getUser } from '../api/auth';
 
 import '../styles/checkout.css';
+import '../styles/Cartlocked.css';
 
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -139,20 +140,25 @@ const Checkout = () => {
   };
 
   if (!user) {
-    return (
-      <main className="main-content">
-        <motion.div
-          className="checkout-auth-warning"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          <h2>🔒 Debes iniciar sesión para comprar</h2>
-          <Link to="/login">Iniciar Sesión</Link> | <Link to="/register">Registrarse</Link>
-        </motion.div>
-      </main>
-    );
-  }
+  return (
+    <main className="main-content">
+      <motion.div
+        className="checkout-auth-warning"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <div className="locked-icon">🔒</div>
+        <h2 className="locked-title">Tu carrito está protegido</h2>
+        <p className="locked-text">
+          Para continuar con tu compra, por favor{" "}
+          <Link to="/login" className="locked-link">Inicia Sesión</Link> o{" "}
+          <Link to="/register" className="locked-link">Regístrate</Link>.
+        </p>
+      </motion.div>
+    </main>
+  );
+}
 
   return (
     <main className="main-content">

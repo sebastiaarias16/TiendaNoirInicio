@@ -1,73 +1,72 @@
-import { useEffect, useState, useContext } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
-import { CartContext } from '../CartContext';
+import { useEffect, useState} from 'react';
+/*import axios from 'axios';*/
+/*import { CartContext } from '../CartContext';*/
 import '../styles/featuredCarousel.css';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-const FeaturedCarousel = () => {
-  const [featured, setFeatured] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const { addToCart } = useContext(CartContext);
+const FeaturedCategories = () => {
+  const categories = [
+    {
+      title: "Mujer",
+      image: `${API_URL}/uploads/IMGMUJER.jpg`,
+    },
+    {
+      title: "Hombre",
+      image: `${API_URL}/uploads/IMGHOMBRE.jpg`,
+    },
+  ];
 
-  // Cargar productos destacados
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detectar si es mobile
   useEffect(() => {
-    axios.get(`${API_URL}/api/products/featured`)
-      .then(res => {
-        if (Array.isArray(res.data)) {
-          setFeatured(res.data);
-        } else {
-          console.error('Respuesta inesperada:', res.data);
-        }
-      })
-      .catch(err => {
-        console.error('Error al cargar productos destacados:', err);
-      });
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Cambiar imagen cada 4s en mobile
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % featured.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [featured]);
-
-  const nextSlide = () => setCurrentIndex(prev => (prev + 1) % featured.length);
-  const prevSlide = () => setCurrentIndex(prev => (prev - 1 + featured.length) % featured.length);
+    if (isMobile) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % categories.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isMobile, categories.length]);
 
   return (
-    <div className="carousel-container">
-      <AnimatePresence mode="wait">
-        {featured.length > 0 && featured[currentIndex] && (
-          <motion.div
-            key={featured[currentIndex]._id}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.6 }}
-            className="carousel-slide featured-product"
-          >
-            {featured[currentIndex].imagen?.[0] && (
-              <img
-                src={`${API_URL}/uploads/${featured[currentIndex].imagen[0]}`}
-                alt={featured[currentIndex].nombre}
-              />
-            )}
-            <h3>{featured[currentIndex].nombre}</h3>
-            <p>{featured[currentIndex].descripcion}</p>
-            <p><strong>${featured[currentIndex].precio.toLocaleString()}</strong></p>
-            <button onClick={() => addToCart(featured[currentIndex])}>
-              Agregar al carrito
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <button className="carousel-arrow left" onClick={prevSlide}>⬅</button>
-      <button className="carousel-arrow right" onClick={nextSlide}>➡</button>
-    </div>
+    <section className="featured-categories">
+      {isMobile ? (
+        <div className="category-card">
+          <img
+            src={categories[currentIndex].image}
+            alt={categories[currentIndex].title}
+            className="category-image"
+          />
+          <div className="category-overlay">
+            <h2>{categories[currentIndex].title}</h2>
+            <button className="category-btn">Ver {categories[currentIndex].title}</button>
+          </div>
+        </div>
+      ) : (
+        categories.map((cat, index) => (
+          <div className="category-card" key={index}>
+            <img src={cat.image} alt={cat.title} className="category-image" />
+            <div className="category-overlay">
+              <h2>{cat.title}</h2>
+              <button className="category-btn">Ver {cat.title}</button>
+            </div>
+          </div>
+        ))
+      )}
+    </section>
   );
 };
 
-export default FeaturedCarousel;
+export default FeaturedCategories;

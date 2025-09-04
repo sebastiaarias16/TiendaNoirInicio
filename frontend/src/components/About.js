@@ -38,9 +38,9 @@ const About = () => (
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <motion.li variants={itemVariants}>✔️ Estilo audaz con propósito</motion.li>
-        <motion.li variants={itemVariants}>✔️ Materiales de alta calidad</motion.li>
-        <motion.li variants={itemVariants}>✔️ Hecho para líderes y disruptores</motion.li>
+        <motion.li variants={itemVariants}>Estilo audaz con propósito</motion.li>
+        <motion.li variants={itemVariants}>Materiales de alta calidad</motion.li>
+        <motion.li variants={itemVariants}>Hecho para líderes y disruptores</motion.li>
       </motion.ul>
 
       

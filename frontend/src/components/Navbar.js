@@ -72,12 +72,15 @@ const Navbar = ({ user, onLogout }) => {
 
     {/* Icono del carrito */}
     <li className="navbar-cart">
-  <div className="cart-wrapper">
-    <Link to="/checkout" className={`cart-icon ${animate ? 'animate' : ''}`}>
-      <span className="material-icons" style={{ fontSize: 24 }}>
-        shopping_cart
-      </span>
-    </Link>
+    <div className="cart-wrapper">
+      <Link to="/checkout" 
+        className={`cart-icon ${animate ? 'animate' : ''}`} 
+        onClick={() => setMenuOpen(false)}
+      >
+        <span className="material-icons" style={{ fontSize: 24 }}>
+          shopping_cart
+        </span>
+      </Link>
 
     {cartItemCount > 0 && (
       <span ref={badgeRef} className={`cart-count ${animate ? 'cart-badge' : ''}`}>

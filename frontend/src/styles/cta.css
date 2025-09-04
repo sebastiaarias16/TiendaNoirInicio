@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
 
 .cta {
   background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../assets/FondoCTA.jpg');
@@ -28,7 +27,6 @@
 .cta h2 {
   font-size: 48px;
   margin-bottom: 30px;
-  color: #ff4d00;
   font-weight: 700;
 }
 
@@ -36,8 +34,7 @@
   margin-top: 30px;
   padding: 14px 36px;
   font-size: 1.1rem;
-  background-color: #ff4d00;
-  color: white;
+ 
   border: none;
   border-radius: 30px;
   cursor: pointer;

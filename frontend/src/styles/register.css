@@ -1,84 +1,77 @@
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
 }
 .register-wrapper {
-    height: 100vh;
-    width: 100%;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    animation: fadeIn 1s ease forwards;
+     height: 100vh;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  animation: fadeIn 1s ease forwards;
   }
   
   .register-wrapper::before {
     content: '';
-    position: absolute;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1;
-    position: relative; 
-    z-index: 2;
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  z-index: 1;
+    
   }
 
 .register-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.register-form {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    box-sizing: border-box;
+    z-index: 2;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  animation: fadeInSlide 1s ease forwards;
+  box-sizing: border-box;
 }
 
 .register-form h2 {
-    margin-bottom: 1.5rem;
-    text-align: center;
-    color: #333;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
+  color: #000;
 }
 
 .register-form input {
-    width: 100%;
-    padding: 12px 15px;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
 }
 
-.register-form input:focus {
-    border-color: #000;
-    outline: none;
-}
 
 .register-form button {
-    width: 100%;
-    padding: 12px;
-    background-color: #000;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .register-form button:hover {
-    background-color: #FFD700;
+  background-color: #FFD700;
   color: black;
 }
 

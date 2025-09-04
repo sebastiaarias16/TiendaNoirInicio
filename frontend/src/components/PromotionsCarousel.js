@@ -1,38 +1,37 @@
 import React from 'react';
 import Slider from 'react-slick';
+import { motion } from "framer-motion";
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../styles/promotions.css';
 
-const PromotionsCarousel = () => {
-  const promos = [
-    { text: "🔥 10% OFF en colección Noir ", image: "/Img/promocion1.jpg" },
-    { text: "🖤 Nueva Línea Oversized", image: "/Img/promo2.jpg" },
-    { text: "💪 Envíos gratis por compras superiores a $150.000", image: "/Img/promo3.jpg" }
-  ];
+const promos = [
+  "Nueva línea Oversize",
+  "Envío gratis desde $150.000",
+  "10% OFF en colección NOIR",
+];
 
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 4000,
-  };
-
+export default function PromoHexagons() {
   return (
-    <div className="carousel-container">
-      <Slider {...settings}>
-        {promos.map((promo, i) => (
-          <div key={i} className="carousel-slide">
-            <img src={promo.image} alt={`Promo ${i}`} />
-            <h2>{promo.text}</h2>
-          </div>
-        ))}
-      </Slider>
-    </div>
+    <section className="promo-hexagons">
+      {promos.map((promo, i) => (
+        <motion.div
+          key={i}
+          className="hexagon"
+          initial={{ x: 0, y: 0 }}
+          animate={{
+            x: [0, Math.random() * 100 - 50],
+            y: [0, Math.random() * 80 - 40],
+          }}
+          transition={{
+            duration: 6 + Math.random() * 3,
+            repeat: Infinity,
+            repeatType: "reverse",
+          }}
+        >
+          <span>{promo}</span>
+        </motion.div>
+      ))}
+    </section>
   );
-};
-
-export default PromotionsCarousel;
+}

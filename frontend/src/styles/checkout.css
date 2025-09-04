@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;700&display=swap');
+
 /* Fondo general */
 .main-content {
   background-color: #ffffff;
@@ -27,7 +27,6 @@
   color: #222;
   margin-bottom: 2rem;
   text-align: center;
-  font-family: 'Syne', sans-serif;
 }
 
 /* Lista del carrito */

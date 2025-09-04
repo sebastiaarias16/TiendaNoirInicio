@@ -28,7 +28,7 @@ const Hero = () => {
     >
       <div className="overlay" />
       <div className="hero-content">
-        <h2>🔥 Eleva tu estilo con Noir 🔥</h2>
+        <h2> Eleva tu estilo con Noir </h2>
         <p>Actitud. Fuerza. Presencia.</p>
         <a href="#coleccion"><button className="hero-btn">Explorar ahora</button></a>
       </div>
