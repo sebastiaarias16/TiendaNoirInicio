@@ -53,16 +53,22 @@ const Checkout = () => {
   const generateWhatsappMessage = () => {
     if (!cartItems.length) return '';
 
-    let mensaje = "Hola, quiero hacer un pedido:%0A";
+    let mensaje = "🖤 Nuevo pedido en Noir 🖤%0A%0A";
 
     cartItems.forEach(item => {
-      mensaje += `- ${item.nombre} (Talla: ${item.selectedSize}, Color: ${item.selectedColor}) x${item.quantity}: $${item.precio * item.quantity}%0A`;
+      mensaje += `Producto: ${item.nombre}%0A`;
+      mensaje += `Talla: ${item.selectedSize || 'N/A'}%0A`;
+      mensaje += `Color: ${item.selectedColor || 'N/A'}%0A`;
+      mensaje += `Cantidad: ${item.quantity}%0A`;
+      mensaje += `Subtotal: $${item.precio * item.quantity}%0A%0A`;
     });
 
-    mensaje += `Total: $${total}`;
+    mensaje += `TOTAL: $${total}%0A`;
+    mensaje += `Cliente: ${user?.name} (${user?.email})%0A`;
 
     return mensaje;
   };
+
   const redirectToWhatsapp = () => {
     const telefono = "573194732613"; // Cambia aquí por tu número con código país (sin + ni espacios)
     const mensaje = generateWhatsappMessage();
@@ -73,15 +79,36 @@ const Checkout = () => {
   };
 
   const handleFinalizePurchase = async () => {
-    await handleCheckout();
-    redirectToWhatsapp();
+    try {
+      const success = await handleCheckout(); // 🔹 ahora retorna true/false
+      if (success) {
+        redirectToWhatsapp(); // 🔹 solo abrir WhatsApp si todo salió bien
+      }
+    } catch (err) {
+      console.error("❌ Error al finalizar compra:", err);
+      setMessage("❌ No se pudo finalizar la compra.");
+    }
   };
 
   const handleCheckout = async () => {
-    if (!user) return alert('Debes iniciar sesión para comprar');
-    if (!cartItems.length) return setMessage('❌ El carrito está vacío.');
+    if (!user) {
+      alert('Debes iniciar sesión para comprar');
+      return false;
+    }
+    if (!cartItems.length) {
+      setMessage('❌ El carrito está vacío.');
+      return false;
+    }
     if (paymentMethod === 'contra_entrega' && city.toLowerCase() !== 'bogotá') {
-      return alert('⚠️ El pago contra entrega solo está disponible en Bogotá.');
+      alert('⚠️ El pago contra entrega solo está disponible en Bogotá.');
+      return false;
+    }
+
+    for (let item of cartItems) {
+      if (!item.selectedSize || !item.selectedColor || !item.quantity) {
+        alert(`⚠️ Debes elegir talla, color y cantidad para el producto: ${item.nombre}`);
+        return false;
+      }
     }
 
     const orderData = {
@@ -98,13 +125,29 @@ const Checkout = () => {
     };
 
     try {
+      // 1️⃣ Crear orden
       const response = await createOrder(orderData);
-      setOrderId(response.order._id);
-      setMessage(`✅ Pedido generado: ${response.order._id}`);
-      clearCart();
+      const newOrderId = response.order._id;
+      setOrderId(newOrderId);
+      setMessage(`✅ Pedido generado: ${newOrderId}`);
+
+      // 2️⃣ Generar factura
+      const invoiceRes = await fetch(`${API_URL}/api/invoice/generate-invoice/${newOrderId}`);
+      const data = await invoiceRes.json();
+      console.log("📩 Respuesta de factura:", data); // 👈 debug
+
+      if (data.message) {
+        setMessage("✅ Pedido confirmado. La factura fue enviada a tu correo.");
+        clearCart();
+        return true;
+      } else {
+        setMessage("⚠️ Pedido generado pero hubo un problema al crear la factura.");
+        return false;
+      }
     } catch (error) {
       console.error('❌ Error en la compra:', error.response?.data || error.message);
       setMessage(`❌ Error: ${error.response?.data?.error || 'No se pudo procesar la compra.'}`);
+      return false;
     }
   };
 
@@ -200,16 +243,28 @@ const Checkout = () => {
                   <div className="item-options">
                     <label>
                       Talla:
-                      <select value={item.selectedSize} onChange={e => updateCartItem(item._id, { selectedSize: e.target.value })}>
-                        {item.tallas.map(size => <option key={size} value={size}>{size}</option>)}
-                      </select>
+                        <select 
+                          value={item.selectedSize || ""} 
+                          onChange={e => updateCartItem(item._id, { selectedSize: e.target.value })}
+                        >
+                          <option value="">Elegir talla</option>
+                          {item.tallas.map(size => (
+                            <option key={size} value={size}>{size}</option>
+                          ))}
+                        </select>
                     </label>
 
                     <label>
                       Color:
-                      <select value={item.selectedColor} onChange={e => updateCartItem(item._id, { selectedColor: e.target.value })}>
-                        {item.colores.map(color => <option key={color} value={color}>{color}</option>)}
-                      </select>
+                        <select 
+                          value={item.selectedColor || ""} 
+                          onChange={e => updateCartItem(item._id, { selectedColor: e.target.value })}
+                        >
+                          <option value="">Elegir color</option>
+                          {item.colores.map(color => (
+                            <option key={color} value={color}>{color}</option>
+                          ))}
+                        </select>
                     </label>
 
                     <label>

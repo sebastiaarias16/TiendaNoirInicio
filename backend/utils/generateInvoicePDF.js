@@ -5,8 +5,8 @@ const path = require('path');
 const generateInvoicePDF = (orderData, outputPath) => {
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
-  const watermarkPath = path.join(__dirname, '../assets/watermark.png');
-  const logoPath = path.join(__dirname, '../assets/logo.png');
+  const watermarkPath = path.join(__dirname, '../build/LogoSimple.png');
+  const logoPath = path.join(__dirname, '../build/LogoCompleto.png');
 
   doc.pipe(fs.createWriteStream(outputPath));
 
@@ -18,7 +18,7 @@ const generateInvoicePDF = (orderData, outputPath) => {
   });
 
   // 🧾 ENCABEZADO
-  doc.fontSize(20).fillColor('#000').text('Factura de compra - Noir Fitwear 🐾', { align: 'center' });
+  doc.fontSize(20).fillColor('#000').text('Factura de compra - Noir 🐾', { align: 'center' });
   doc.moveDown();
   doc.fontSize(12).fillColor('#444').text(`Fecha: ${new Date().toLocaleDateString()}`, { align: 'right' });
   doc.moveDown();
@@ -64,7 +64,7 @@ const generateInvoicePDF = (orderData, outputPath) => {
   doc
     .fontSize(10)
     .fillColor('#000')
-    .text('Instagram: @noir.fitwear   |   TikTok: @noir.fitwear   |   www.noircol.com', { align: 'center' });
+    .text('Instagram: @noirOff   |   TikTok: @noirOff   |   www.noircol.com', { align: 'center' });
   doc.moveDown();
   doc.fontSize(10).fillColor('#000').text('Con fuerza y estilo, El equipo Noir 🐾', { align: 'center' });
 

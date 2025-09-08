@@ -4,7 +4,7 @@ const cors = require('cors');
 const connectDB = require('./db');
 const path = require('path');
 
-const invoiceRoutes = require('./routes/invoice');
+const invoiceRoutes = require('./routes/invoiceRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -20,6 +20,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/invoice', invoiceRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+// Servir facturas generadas
+app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
+
 
 // Servir imágenes u otros archivos subidos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
