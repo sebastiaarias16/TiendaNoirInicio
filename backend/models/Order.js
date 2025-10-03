@@ -9,10 +9,10 @@ const OrderSchema = new mongoose.Schema({
         color: { type: String, required: true }
     }],
     total: { type: Number, required: true },
-    status: { type: String, enum: ['pendiente', 'pagado', 'enviado'], default: 'pendiente' },
+    status: { type: String, enum: ['pendiente', 'pagado', 'enviado', 'cancelado'], default: 'pendiente' },
     createdAt: { type: Date, default: Date.now },
-    paymentMethod: { type: String, enum: ['online', 'contra_entrega'], required: true }, // Método de pago
-    city: { type: String, required: true } // Ciudad para validar contra entrega
+    paymentMethod: { type: String, enum: ['online', 'contra_entrega', 'nequi'], required: true }, // Método de pago
+    city: { type: String, required: true, default: 'Bogota' } // Ciudad para validar contra entrega
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', OrderSchema);

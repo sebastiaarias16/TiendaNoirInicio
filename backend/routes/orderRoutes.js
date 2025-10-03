@@ -4,6 +4,9 @@ const Order = require('../models/Order');
 const Product = require('../models/Product'); // lo subimos arriba
 const mongoose = require('mongoose');
 
+const generateInvoicePDF = require('../utils/generateInvoicePDF');
+const sendInvoiceEmail = require('../utils/sendInvoiceEmail');
+
 // 📌 Ruta para crear una orden
 router.post('/', async (req, res) => {
   console.log('🛒 Datos recibidos en el backend:', req.body);
@@ -44,6 +47,7 @@ router.post('/', async (req, res) => {
       total,
       paymentMethod,
       city,
+      estado: "pendiente"
     });
 
     await newOrder.save();
@@ -105,6 +109,55 @@ router.get('/user/:userId', async (req, res) => {
 router.get('/debug', async (req, res) => {
   const orders = await Order.find().populate('products.productId');
   res.json(orders);
+});
+
+
+// 📌 Confirmar pago de una orden
+router.post('/confirm-payment/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId)
+      .populate('products.productId')
+      .populate('userId'); // 👈 trae los datos del usuario
+
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+
+    if (order.estado === 'pagado') {
+      return res.status(400).json({ error: 'La orden ya fue confirmada y pagada.' });
+    }
+
+    // ✅ Cambiar estado a pagado
+    order.estado = 'pagado';
+    await order.save();
+
+    // 📄 Generar factura PDF
+    const invoicePath = await generateInvoicePDF({
+      _id: order._id,
+      customerName: order.userId?.name || 'Cliente',
+      customerEmail: order.userId?.email || 'sin-email',
+      customerAddress: order.userId?.address || 'Sin dirección',
+      customerCity: order.city,
+      items: order.products.map(p => ({
+        name: p.productId.nombre,
+        size: p.talla,
+        color: p.color,
+        quantity: p.quantity,
+        price: p.productId.precio
+      })),
+      subtotal: order.total,      // ajusta si tienes cálculo aparte
+      shipping: 0,
+      total: order.total
+    });
+
+    // ✉️ Enviar factura por correo/WhatsApp
+    await sendInvoiceEmail(order.userId.email, invoicePath);
+
+    res.json({ message: '✅ Pago confirmado y factura enviada', order });
+  } catch (error) {
+    console.error('❌ Error al confirmar pago:', error.message);
+    res.status(500).json({ error: 'Error al confirmar el pago' });
+  }
 });
 
 module.exports = router;

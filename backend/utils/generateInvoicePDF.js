@@ -2,7 +2,14 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-const generateInvoicePDF = (orderData, outputPath) => {
+const generateInvoicePDF = async (orderData) => {
+  // Ruta final del archivo
+  const invoicesDir = path.join(__dirname, '../invoices');
+  if (!fs.existsSync(invoicesDir)) {
+    fs.mkdirSync(invoicesDir);
+  }
+  const outputPath = path.join(invoicesDir, `factura_${orderData._id}.pdf`);
+
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
   const watermarkPath = path.join(__dirname, '../build/LogoSimple.png');
@@ -75,6 +82,11 @@ const generateInvoicePDF = (orderData, outputPath) => {
   });
 
   doc.end();
+
+    return new Promise((resolve, reject) => {
+    doc.on('finish', () => resolve(outputPath));
+    doc.on('error', reject);
+  });
 };
 
 module.exports = generateInvoicePDF;

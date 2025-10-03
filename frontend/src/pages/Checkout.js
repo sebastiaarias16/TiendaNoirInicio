@@ -130,7 +130,10 @@ const Checkout = () => {
       const newOrderId = response.order._id;
       setOrderId(newOrderId);
       setMessage(`✅ Pedido generado: ${newOrderId}`);
+        clearCart();
+        return true;
 
+      /*
       // 2️⃣ Generar factura
       const invoiceRes = await fetch(`${API_URL}/api/invoice/generate-invoice/${newOrderId}`);
       const data = await invoiceRes.json();
@@ -144,6 +147,7 @@ const Checkout = () => {
         setMessage("⚠️ Pedido generado pero hubo un problema al crear la factura.");
         return false;
       }
+      */
     } catch (error) {
       console.error('❌ Error en la compra:', error.response?.data || error.message);
       setMessage(`❌ Error: ${error.response?.data?.error || 'No se pudo procesar la compra.'}`);
