@@ -1,14 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const Product = require('../models/Product'); // lo subimos arriba
 const mongoose = require('mongoose');
+
+const generateInvoicePDF = require('../utils/generateInvoicePDF');
+const sendInvoiceEmail = require('../utils/sendInvoiceEmail');
 
 // 📌 Ruta para crear una orden
 router.post('/', async (req, res) => {
   console.log('🛒 Datos recibidos en el backend:', req.body);
 
   try {
-    const { userId, products, total, paymentMethod, city } = req.body;
+    const { userId, products, total, paymentMethod } = req.body;
+
+    // Siempre Bogotá (por ahora)
+    const city = "Bogotá";
+
+    // Validación de productos
+    for (const p of products) {
+      if (!p.talla || !p.color || !p.quantity) {
+        return res.status(400).json({ error: 'Todos los productos deben tener talla, color y cantidad seleccionados.' });
+      }
+    }
 
     if (!userId || !products || !total) {
       return res.status(400).json({ error: '❌ Faltan datos en la orden' });
@@ -18,27 +32,43 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'El pago contra entrega solo está disponible en Bogotá.' });
     }
 
-    // 👇 Forzar conversión de los productId a ObjectId
+    // 👇 Parseo seguro de productos
     const parsedProducts = products.map(p => ({
-      ...p,
-      productId: new mongoose.Types.ObjectId(p.productId)
+      productId: new mongoose.Types.ObjectId(p.productId),
+      quantity: p.quantity,
+      talla: p.talla,
+      color: p.color
     }));
 
+    // Crear la orden
     const newOrder = new Order({
       userId,
       products: parsedProducts,
       total,
       paymentMethod,
       city,
+      estado: "pendiente"
     });
 
     await newOrder.save();
+
+    // 👇 Actualizar stock después de guardar la orden
+    for (const p of parsedProducts) {
+      await Product.findByIdAndUpdate(
+        p.productId,
+        { $inc: { stock: -p.quantity } },
+        { new: true }
+      );
+    }
+
     res.status(201).json({ message: '✅ Orden creada', order: newOrder });
+
   } catch (error) {
     console.error('❌ Error en el backend:', error.message);
     res.status(500).json({ error: '❌ Error interno del servidor' });
   }
 });
+
 
 // 📌 Obtener las órdenes de un usuario específico
 router.get('/user/:userId', async (req, res) => {
@@ -54,7 +84,7 @@ router.get('/user/:userId', async (req, res) => {
       select: 'nombre precio' // Trae solo nombre y precio del producto
     });
 
-    console.log('📦 Órdenes encontradas:', orders); // ✅ Aquí sí es seguro
+    console.log('📦 Órdenes encontradas:', orders);
 
     const formattedOrders = orders.map(order => ({
       _id: order._id,
@@ -75,10 +105,59 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 
+// 📌 Endpoint debug para revisar todas las órdenes
 router.get('/debug', async (req, res) => {
   const orders = await Order.find().populate('products.productId');
   res.json(orders);
 });
 
+
+// 📌 Confirmar pago de una orden
+router.post('/confirm-payment/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId)
+      .populate('products.productId')
+      .populate('userId'); // 👈 trae los datos del usuario
+
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+
+    if (order.estado === 'pagado') {
+      return res.status(400).json({ error: 'La orden ya fue confirmada y pagada.' });
+    }
+
+    // ✅ Cambiar estado a pagado
+    order.estado = 'pagado';
+    await order.save();
+
+    // 📄 Generar factura PDF
+    const invoicePath = await generateInvoicePDF({
+      _id: order._id,
+      customerName: order.userId?.name || 'Cliente',
+      customerEmail: order.userId?.email || 'sin-email',
+      customerAddress: order.userId?.address || 'Sin dirección',
+      customerCity: order.city,
+      items: order.products.map(p => ({
+        name: p.productId.nombre,
+        size: p.talla,
+        color: p.color,
+        quantity: p.quantity,
+        price: p.productId.precio
+      })),
+      subtotal: order.total,      // ajusta si tienes cálculo aparte
+      shipping: 0,
+      total: order.total
+    });
+
+    // ✉️ Enviar factura por correo/WhatsApp
+    await sendInvoiceEmail(order.userId.email, invoicePath);
+
+    res.json({ message: '✅ Pago confirmado y factura enviada', order });
+  } catch (error) {
+    console.error('❌ Error al confirmar pago:', error.message);
+    res.status(500).json({ error: 'Error al confirmar el pago' });
+  }
+});
 
 module.exports = router;

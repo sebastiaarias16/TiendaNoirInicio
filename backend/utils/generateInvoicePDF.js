@@ -2,11 +2,18 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-const generateInvoicePDF = (orderData, outputPath) => {
+const generateInvoicePDF = async (orderData) => {
+  // Ruta final del archivo
+  const invoicesDir = path.join(__dirname, '../invoices');
+  if (!fs.existsSync(invoicesDir)) {
+    fs.mkdirSync(invoicesDir);
+  }
+  const outputPath = path.join(invoicesDir, `factura_${orderData._id}.pdf`);
+
   const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
-  const watermarkPath = path.join(__dirname, '../assets/watermark.png');
-  const logoPath = path.join(__dirname, '../assets/logo.png');
+  const watermarkPath = path.join(__dirname, '../build/LogoSimple.png');
+  const logoPath = path.join(__dirname, '../build/LogoCompleto.png');
 
   doc.pipe(fs.createWriteStream(outputPath));
 
@@ -18,7 +25,7 @@ const generateInvoicePDF = (orderData, outputPath) => {
   });
 
   // 🧾 ENCABEZADO
-  doc.fontSize(20).fillColor('#000').text('Factura de compra - Noir Fitwear 🐾', { align: 'center' });
+  doc.fontSize(20).fillColor('#000').text('Factura de compra - Noir 🐾', { align: 'center' });
   doc.moveDown();
   doc.fontSize(12).fillColor('#444').text(`Fecha: ${new Date().toLocaleDateString()}`, { align: 'right' });
   doc.moveDown();
@@ -64,7 +71,7 @@ const generateInvoicePDF = (orderData, outputPath) => {
   doc
     .fontSize(10)
     .fillColor('#000')
-    .text('Instagram: @noir.fitwear   |   TikTok: @noir.fitwear   |   www.noircol.com', { align: 'center' });
+    .text('Instagram: @noirOff   |   TikTok: @noirOff   |   www.noircol.com', { align: 'center' });
   doc.moveDown();
   doc.fontSize(10).fillColor('#000').text('Con fuerza y estilo, El equipo Noir 🐾', { align: 'center' });
 
@@ -75,6 +82,11 @@ const generateInvoicePDF = (orderData, outputPath) => {
   });
 
   doc.end();
+
+    return new Promise((resolve, reject) => {
+    doc.on('finish', () => resolve(outputPath));
+    doc.on('error', reject);
+  });
 };
 
 module.exports = generateInvoicePDF;
