@@ -5,3 +5,5 @@
 #backend/node_modules/
 #frontend/build/
 #uploads/
+frontend/node_modules/.cache/default-development/4.pack
+frontend/node_modules/.cache/default-development/4.pack
