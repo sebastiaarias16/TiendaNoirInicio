@@ -70,7 +70,7 @@ const Checkout = () => {
   };
 
   const redirectToWhatsapp = () => {
-    const telefono = "573194732613"; // Cambia aquí por tu número con código país (sin + ni espacios)
+    const telefono = "573124252861"; // Cambia aquí por tu número con código país (sin + ni espacios)
     const mensaje = generateWhatsappMessage();
     if (!mensaje) return alert('El carrito está vacío.');
 

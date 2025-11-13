@@ -3,6 +3,8 @@ const router = express.Router();
 const Order = require('../models/Order');
 const Product = require('../models/Product'); // lo subimos arriba
 const mongoose = require('mongoose');
+const path = require('path');
+const fs = require('fs');
 
 const generateInvoicePDF = require('../utils/generateInvoicePDF');
 const sendInvoiceEmail = require('../utils/sendInvoiceEmail');
@@ -116,10 +118,12 @@ router.get('/debug', async (req, res) => {
 router.post('/confirm-payment/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
+    console.log('🟢 Entrando a confirm-payment con ID:', orderId);
 
     const order = await Order.findById(orderId)
       .populate('products.productId')
-      .populate('userId'); // 👈 trae los datos del usuario
+      .populate('userId');
+      console.log('✅ Orden encontrada:', order?._id);
 
     if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
 
@@ -130,9 +134,19 @@ router.post('/confirm-payment/:orderId', async (req, res) => {
     // ✅ Cambiar estado a pagado
     order.estado = 'pagado';
     await order.save();
+    console.log('💾 Estado actualizado a pagado.');
 
+    // 📄 Ruta donde se guardará temporalmente el PDF
+    const invoicePath = path.join(__dirname, `../facturas/factura_${order._id}.pdf`);
+
+    // Asegura que la carpeta exista
+    if (!fs.existsSync(path.join(__dirname, '../facturas'))) {
+      fs.mkdirSync(path.join(__dirname, '../facturas'));
+    }
+
+    console.log('🧾 Generando factura PDF...');
     // 📄 Generar factura PDF
-    const invoicePath = await generateInvoicePDF({
+    await generateInvoicePDF({
       _id: order._id,
       customerName: order.userId?.name || 'Cliente',
       customerEmail: order.userId?.email || 'sin-email',
@@ -145,14 +159,17 @@ router.post('/confirm-payment/:orderId', async (req, res) => {
         quantity: p.quantity,
         price: p.productId.precio
       })),
-      subtotal: order.total,      // ajusta si tienes cálculo aparte
+      subtotal: order.total,
       shipping: 0,
       total: order.total
-    });
+    }, invoicePath); // 👈 ahora sí se pasa la ruta del archivo
 
-    // ✉️ Enviar factura por correo/WhatsApp
-    await sendInvoiceEmail(order.userId.email, invoicePath);
+      console.log('📧 Enviando factura por correo...');
+    // ✉️ Enviar factura por correo
+    await sendInvoiceEmail(order.userId.email, order.userId.name || 'Cliente', invoicePath);
 
+
+    console.log('✅ Todo completado.');
     res.json({ message: '✅ Pago confirmado y factura enviada', order });
   } catch (error) {
     console.error('❌ Error al confirmar pago:', error.message);
