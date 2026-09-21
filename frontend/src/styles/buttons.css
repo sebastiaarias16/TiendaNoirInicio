@@ -1,16 +1,66 @@
-button {
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: bold;
-    background-color: #ff4d00;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #e64000;
-    transform: scale(1.05);
-  }
+/* ==========================================================================
+   NOIR — BUTTON DESIGN SYSTEM
+   Eliminates obsolete bright orange rules and provides cohesive luxury buttons.
+   ========================================================================== */
+
+.noir-btn {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  border-radius: var(--radius-none);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 14px 28px;
+  border: 1px solid transparent;
+  transition: all var(--transition-normal);
+  user-select: none;
+  background-color: var(--noir-text-primary);
+  color: var(--noir-bg-primary);
+}
+
+.noir-btn:hover {
+  background-color: #FFFFFF;
+  color: #000000;
+  transform: translateY(-1px);
+}
+
+.noir-btn-secondary {
+  background-color: transparent;
+  color: var(--noir-text-primary);
+  border: 1px solid var(--noir-border-medium);
+}
+
+.noir-btn-secondary:hover {
+  border-color: var(--noir-text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--noir-text-primary);
+}
+
+.noir-btn-accent {
+  background-color: rgba(197, 168, 128, 0.1);
+  color: var(--noir-accent-champagne);
+  border: 1px solid var(--noir-accent-champagne);
+}
+
+.noir-btn-accent:hover {
+  background-color: var(--noir-accent-champagne);
+  color: var(--noir-bg-primary);
+}
+
+.noir-btn-ghost {
+  background: none;
+  border: none;
+  color: var(--noir-text-primary);
+  padding: 8px 12px;
+}
+
+.noir-btn-ghost:hover {
+  color: var(--noir-accent-champagne);
+  background: none;
+  transform: none;
+}
