@@ -76,6 +76,19 @@ export const getPaymentStatusByReference = async (reference) => {
   }
 };
 
+// 🔍 Consultar estado autoritativo de pago por ID de transacción Wompi
+export const getPaymentStatusByTransactionId = async (transactionId) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/api/payments/status/by-transaction/${encodeURIComponent(transactionId)}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error consultando estado por ID de transacción:', error);
+    throw error;
+  }
+};
+
 // 📲 Registrar comprobante o referencia de pago asistido Bre-B / Llave
 export const submitBrebProof = async ({ orderId, brebReference, brebProof }) => {
   try {

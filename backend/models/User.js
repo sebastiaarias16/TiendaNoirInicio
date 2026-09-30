@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema({
     verificationToken: { type: String }, // Nuevo campo
     address: { type: String },
     phone: { type: String },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
     createdAt: { type: Date, default: Date.now }
 });
 

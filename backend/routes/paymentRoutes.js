@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const Order = require('../models/Order');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/authMiddleware');
 const {
   getWompiConfig,
   generateIntegritySignature,
@@ -98,14 +99,22 @@ router.post('/wompi/create', async (req, res) => {
       });
     }
 
+    // Check if stock was already released, order cancelled, or payment expired
+    if (order.stockReleased || order.orderStatus === 'CANCELLED' || order.paymentStatus === 'EXPIRED') {
+      return res.status(409).json({
+        error: 'El inventario de esta orden fue liberado tras un intento fallido o expirado. Por favor genera una nueva orden desde el carrito.',
+        stockReleased: true,
+      });
+    }
+
     // Check if expired
     if (order.paymentExpiresAt && new Date() > new Date(order.paymentExpiresAt)) {
       await releaseOrderStock(order, 'EXPIRED_ON_PAYMENT_INIT');
       order.paymentStatus = 'EXPIRED';
       order.orderStatus = 'CANCELLED';
       await order.save();
-      return res.status(410).json({
-        error: 'El tiempo límite para completar el pago de esta orden ha expirado. El stock ha sido liberado.',
+      return res.status(409).json({
+        error: 'El inventario de esta orden fue liberado tras un intento fallido o expirado. Por favor genera una nueva orden desde el carrito.',
         expired: true,
       });
     }
@@ -410,16 +419,80 @@ router.get('/status/by-reference/:reference', async (req, res) => {
       orderId: order._id,
       orderNumber: order.orderNumber,
       total: order.total,
+      subtotal: order.subtotal,
+      shippingCost: order.shippingCost,
+      city: order.city,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      phone: order.phone,
+      shippingAddress: order.shippingAddress,
       paymentMethod: order.paymentMethod,
+      paymentProvider: order.paymentProvider,
       paymentStatus: order.paymentStatus,
       orderStatus: order.orderStatus,
       paymentReference: order.paymentReference,
       paymentTransactionId: order.paymentTransactionId,
+      paymentStatusMessage: order.paymentStatusMessage,
       paidAt: order.paidAt,
+      paymentExpiresAt: order.paymentExpiresAt,
+      brebReference: order.brebReference,
     });
   } catch (error) {
     console.error('❌ Error consultando pago por referencia:', error.message);
     return res.status(500).json({ error: 'Error al consultar estado por referencia.' });
+  }
+});
+
+/**
+ * 📌 GET /api/payments/status/by-transaction/:transactionId
+ * Looks up order status by Wompi transaction ID.
+ */
+router.get('/status/by-transaction/:transactionId', async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    if (!transactionId) {
+      return res.status(400).json({ error: 'ID de transacción requerido.' });
+    }
+
+    let order = await Order.findOne({ paymentTransactionId: transactionId });
+
+    // Fallback: If webhook hasn't stored transactionId yet, query Wompi API
+    if (!order) {
+      const wompiTx = await fetchTransactionFromWompi(transactionId);
+      if (wompiTx && wompiTx.reference) {
+        order = await Order.findOne({ paymentReference: wompiTx.reference });
+      }
+    }
+
+    if (!order) {
+      return res.status(404).json({ error: 'No se encontró una orden con dicha transacción.' });
+    }
+
+    return res.json({
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      total: order.total,
+      subtotal: order.subtotal,
+      shippingCost: order.shippingCost,
+      city: order.city,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      phone: order.phone,
+      shippingAddress: order.shippingAddress,
+      paymentMethod: order.paymentMethod,
+      paymentProvider: order.paymentProvider,
+      paymentStatus: order.paymentStatus,
+      orderStatus: order.orderStatus,
+      paymentReference: order.paymentReference,
+      paymentTransactionId: order.paymentTransactionId || transactionId,
+      paymentStatusMessage: order.paymentStatusMessage,
+      paidAt: order.paidAt,
+      paymentExpiresAt: order.paymentExpiresAt,
+      brebReference: order.brebReference,
+    });
+  } catch (error) {
+    console.error('❌ Error consultando pago por transacción:', error.message);
+    return res.status(500).json({ error: 'Error al consultar estado por transacción.' });
   }
 });
 
@@ -481,11 +554,26 @@ router.post('/breb/submit-proof', async (req, res) => {
 /**
  * 📌 POST /api/payments/breb/verify/:orderId
  * Administrative verification endpoint to confirm or decline manual Bre-B payments.
+ * Protected with authMiddleware and admin authorization check.
  */
-router.post('/breb/verify/:orderId', async (req, res) => {
+router.post('/breb/verify/:orderId', authMiddleware, async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { approved, notes, adminUserId } = req.body;
+    const { approved, notes } = req.body;
+
+    // 1. Authorize: Verify requesting user is admin
+    const adminUser = await User.findById(req.user);
+    const isAdmin =
+      adminUser &&
+      (adminUser.role === 'admin' ||
+        adminUser.isAdmin === true ||
+        (process.env.ADMIN_EMAIL && adminUser.email === process.env.ADMIN_EMAIL));
+
+    if (!isAdmin) {
+      return res.status(403).json({
+        error: 'Acceso denegado: Privilegios de administrador requeridos para verificar pagos.',
+      });
+    }
 
     if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ error: 'Identificador de orden inválido.' });
@@ -496,13 +584,33 @@ router.post('/breb/verify/:orderId', async (req, res) => {
       return res.status(404).json({ error: 'Orden no encontrada.' });
     }
 
+    // 2. Validate payment method is BREB
+    if (order.paymentMethod !== 'BREB') {
+      return res.status(400).json({
+        error: 'La orden no corresponde al método de pago manual Bre-B.',
+      });
+    }
+
+    // 3. Prevent duplicate approval or altering already confirmed orders
+    if (order.paymentStatus === 'APPROVED' || order.orderStatus === 'CONFIRMED') {
+      return res.status(400).json({
+        error: 'Esta orden ya fue aprobada y confirmada previamente.',
+        alreadyApproved: true,
+      });
+    }
+
+    // 4. Must be in PENDING or PROCESSING state
+    if (order.paymentStatus !== 'PENDING' && order.paymentStatus !== 'PROCESSING') {
+      return res.status(400).json({
+        error: `No se puede verificar una orden en estado ${order.paymentStatus}.`,
+      });
+    }
+
     if (approved) {
       order.paymentStatus = 'APPROVED';
       order.orderStatus = 'CONFIRMED';
       order.brebVerifiedAt = new Date();
-      if (adminUserId && mongoose.Types.ObjectId.isValid(adminUserId)) {
-        order.brebVerifiedBy = adminUserId;
-      }
+      order.brebVerifiedBy = adminUser._id;
       order.paidAt = new Date();
       order.paymentStatusMessage = notes || 'Pago verificado manualmente mediante Bre-B.';
 
@@ -513,7 +621,7 @@ router.post('/breb/verify/:orderId', async (req, res) => {
         oldStatus: 'PENDING',
         newStatus: 'APPROVED',
         timestamp: new Date(),
-        details: { notes, adminUserId },
+        details: { notes, adminUserId: adminUser._id },
       });
 
       await order.save();
@@ -536,7 +644,7 @@ router.post('/breb/verify/:orderId', async (req, res) => {
         oldStatus: 'PENDING',
         newStatus: 'DECLINED',
         timestamp: new Date(),
-        details: { notes, adminUserId },
+        details: { notes, adminUserId: adminUser._id },
       });
 
       await order.save();

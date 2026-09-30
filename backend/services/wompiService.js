@@ -11,7 +11,9 @@ const axios = require('axios');
  */
 
 function getWompiConfig() {
-  const isProd = process.env.WOMPI_ENVIRONMENT === 'production';
+  const isProd =
+    process.env.WOMPI_ENVIRONMENT === 'production' ||
+    process.env.NODE_ENV === 'production';
   return {
     isProd,
     publicKey: process.env.WOMPI_PUBLIC_KEY || '',
@@ -60,8 +62,12 @@ function verifyWebhookChecksum(eventBody) {
     return { valid: false, error: 'Estructura del evento inválida' };
   }
 
-  // If no secret configured in dev/sandbox, log warning but note it
+  // If no secret configured: strictly reject in production, allow bypass only in sandbox/dev
   if (!config.eventsSecret) {
+    if (config.isProd) {
+      console.error('🚨 Configuración crítica: WOMPI_EVENTS_SECRET no configurado en producción. Webhook rechazado.');
+      return { valid: false, error: 'WOMPI_EVENTS_SECRET requerido en producción' };
+    }
     console.warn('⚠️ WOMPI_EVENTS_SECRET no configurado. Verificación estricta omitida en sandbox.');
     return { valid: true, unverifiedSecret: true };
   }

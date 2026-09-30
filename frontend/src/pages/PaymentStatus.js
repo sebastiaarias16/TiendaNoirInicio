@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { getPaymentStatus, getPaymentStatusByReference } from '../api/api';
+import {
+  getPaymentStatus,
+  getPaymentStatusByReference,
+  getPaymentStatusByTransactionId,
+} from '../api/api';
 import Footer from '../components/Footer';
 import { formatCOP } from '../utils/productUtils';
 import {
@@ -17,12 +21,16 @@ import '../styles/checkout.css';
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 const WHATSAPP_PHONE = '573124252861';
 
+// Helper to validate 24-character hexadecimal MongoDB ObjectId
+const isMongoId = (val) => typeof val === 'string' && /^[0-9a-fA-F]{24}$/.test(val);
+
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const orderIdParam = searchParams.get('orderId') || searchParams.get('id');
   const referenceParam = searchParams.get('reference');
+  const orderIdParam = searchParams.get('orderId');
+  const idParam = searchParams.get('id');
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,12 +42,32 @@ const PaymentStatus = () => {
   const fetchStatus = useCallback(async () => {
     try {
       let data = null;
-      if (orderIdParam) {
-        data = await getPaymentStatus(orderIdParam);
-      } else if (referenceParam) {
+
+      // 1. ALWAYS prioritize reference param if provided
+      if (referenceParam) {
         data = await getPaymentStatusByReference(referenceParam);
-      } else {
-        setError('No se proporcionó un identificador o referencia de pago.');
+      }
+      // 2. If orderId is provided and is a valid ObjectId
+      else if (orderIdParam && isMongoId(orderIdParam)) {
+        data = await getPaymentStatus(orderIdParam);
+      }
+      // 3. If ?id= is provided
+      else if (idParam) {
+        if (isMongoId(idParam)) {
+          data = await getPaymentStatus(idParam);
+        } else {
+          data = await getPaymentStatusByTransactionId(idParam);
+        }
+      }
+      // 4. Invalid orderId format
+      else if (orderIdParam && !isMongoId(orderIdParam)) {
+        setError('El identificador de orden proporcionado no es válido.');
+        setLoading(false);
+        return;
+      }
+      // 5. No valid identifier provided
+      else {
+        setError('No se proporcionó un identificador o referencia de pago válido.');
         setLoading(false);
         return;
       }
@@ -51,7 +79,7 @@ const PaymentStatus = () => {
     } finally {
       setLoading(false);
     }
-  }, [orderIdParam, referenceParam]);
+  }, [referenceParam, orderIdParam, idParam]);
 
   useEffect(() => {
     fetchStatus();
@@ -158,8 +186,11 @@ const PaymentStatus = () => {
   const isApproved = order.paymentStatus === 'APPROVED' || order.orderStatus === 'CONFIRMED';
   const isDeclined =
     order.paymentStatus === 'DECLINED' ||
-    order.paymentStatus === 'FAILED' ||
+    order.paymentStatus === 'VOIDED' ||
     order.paymentStatus === 'EXPIRED';
+  const isError =
+    order.paymentStatus === 'ERROR' ||
+    order.paymentStatus === 'FAILED';
 
   // ----------------------------------------------------
   // 1. APPROVED STATE
@@ -234,7 +265,7 @@ const PaymentStatus = () => {
   }
 
   // ----------------------------------------------------
-  // 2. DECLINED / FAILED / EXPIRED STATE
+  // 2. DECLINED / VOIDED / EXPIRED STATE
   // ----------------------------------------------------
   if (isDeclined) {
     return (
@@ -287,7 +318,66 @@ const PaymentStatus = () => {
   }
 
   // ----------------------------------------------------
-  // 3. PENDING / PROCESSING STATE (Default fallback)
+  // 3. ERROR / FAILED STATE
+  // ----------------------------------------------------
+  if (isError) {
+    return (
+      <>
+        <main className="checkout-page-wrapper">
+          <div className="container-editorial checkout-empty-screen">
+            <FiAlertTriangle size={56} style={{ color: '#EF4444', marginBottom: '1.25rem' }} />
+            <span className="editorial-label" style={{ color: '#EF4444' }}>
+              ERROR EN LA TRANSACCIÓN
+            </span>
+            <h1 className="empty-cart-title">ERROR AL PROCESAR EL PAGO</h1>
+            <p className="empty-cart-desc">
+              {order.paymentStatusMessage ||
+                'Ocurrió una interrupción temporal con la red financiera o la pasarela. No se efectuó ningún cobro.'}
+            </p>
+
+            <div className="success-order-summary" style={{ maxWidth: '480px' }}>
+              <div className="summary-row">
+                <span>Orden:</span>
+                <strong>{order.orderNumber}</strong>
+              </div>
+              <div className="summary-row">
+                <span>Estado:</span>
+                <strong style={{ color: '#EF4444' }}>{order.paymentStatus}</strong>
+              </div>
+              <div className="summary-row">
+                <span>Total:</span>
+                <strong>{formatCOP(order.total)} COP</strong>
+              </div>
+            </div>
+
+            <div className="gate-actions" style={{ marginTop: '1.5rem' }}>
+              <button
+                type="button"
+                className="noir-btn noir-btn-primary"
+                onClick={() => navigate('/checkout')}
+              >
+                <span>REINTENTAR PAGO EN CHECKOUT</span>
+                <FiArrowRight size={16} />
+              </button>
+              <a
+                href={buildWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="noir-btn noir-btn-secondary"
+              >
+                <FiMessageSquare size={16} />
+                <span>CONSULTAR SOPORTE</span>
+              </a>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // ----------------------------------------------------
+  // 4. PENDING / PROCESSING STATE (Default fallback)
   // ----------------------------------------------------
   return (
     <>

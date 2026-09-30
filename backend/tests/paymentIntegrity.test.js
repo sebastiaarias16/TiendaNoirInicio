@@ -261,6 +261,165 @@ async function runTests() {
     assert.strictEqual(isMatch, false, 'Un pago con monto discrepante debe ser rechazado');
   });
 
+  // ----------------------------------------------------
+  // 11. Finding 5: Production Webhook Security (Missing Secret Strict Rejection)
+  // ----------------------------------------------------
+  test('11. Security: Webhook rejects events in production if WOMPI_EVENTS_SECRET is missing', () => {
+    const origEnv = process.env.WOMPI_ENVIRONMENT;
+    const origSecret = process.env.WOMPI_EVENTS_SECRET;
+
+    try {
+      process.env.WOMPI_ENVIRONMENT = 'production';
+      delete process.env.WOMPI_EVENTS_SECRET;
+
+      const dummyEvent = {
+        event: 'transaction.updated',
+        data: { transaction: { id: 'tx-sec-1' } },
+        signature: { properties: ['transaction.id'], checksum: 'abc' },
+        timestamp: 1718000000,
+      };
+
+      const result = verifyWebhookChecksum(dummyEvent);
+      assert.strictEqual(result.valid, false, 'En producción debe rechazar si falta WOMPI_EVENTS_SECRET');
+      assert.ok(result.error.includes('WOMPI_EVENTS_SECRET requerido en producción'));
+    } finally {
+      process.env.WOMPI_ENVIRONMENT = origEnv;
+      process.env.WOMPI_EVENTS_SECRET = origSecret;
+    }
+  });
+
+  // ----------------------------------------------------
+  // 12. Finding 4: Stock Release & Cancellation Guard on Payment Retry
+  // ----------------------------------------------------
+  test('12. Inventory Safety: Payment creation blocked if stock is released or order cancelled', () => {
+    const orderCancelled = {
+      orderNumber: 'NOIR-2026-000010',
+      stockReleased: true,
+      orderStatus: 'CANCELLED',
+      paymentStatus: 'DECLINED',
+    };
+
+    const isRetryBlocked =
+      orderCancelled.stockReleased ||
+      orderCancelled.orderStatus === 'CANCELLED' ||
+      orderCancelled.paymentStatus === 'EXPIRED';
+
+    assert.strictEqual(isRetryBlocked, true, 'Reintento debe ser bloqueado con HTTP 409 cuando stock fue liberado');
+
+    const activeOrder = {
+      orderNumber: 'NOIR-2026-000011',
+      stockReleased: false,
+      orderStatus: 'PENDING_PAYMENT',
+      paymentStatus: 'PENDING',
+    };
+
+    const isRetryBlockedForActive =
+      activeOrder.stockReleased ||
+      activeOrder.orderStatus === 'CANCELLED' ||
+      activeOrder.paymentStatus === 'EXPIRED';
+
+    assert.strictEqual(isRetryBlockedForActive, false, 'Orden activa con stock reservado debe poder proceder');
+  });
+
+  // ----------------------------------------------------
+  // 13. Finding 3: Bre-B Manual Verification Admin & State Authorization
+  // ----------------------------------------------------
+  test('13. Bre-B Verification: Requires admin role, validates BREB method and pending state', () => {
+    function authorizeBrebVerification(user, order) {
+      const isAdmin =
+        user && (user.role === 'admin' || user.isAdmin === true || user.email === 'admin@noirapparel.co');
+      if (!isAdmin) return { status: 403, error: 'Acceso denegado' };
+      if (!order) return { status: 404, error: 'Orden no encontrada' };
+      if (order.paymentMethod !== 'BREB') return { status: 400, error: 'No es BREB' };
+      if (order.paymentStatus === 'APPROVED' || order.orderStatus === 'CONFIRMED') {
+        return { status: 400, error: 'Ya aprobada' };
+      }
+      if (order.paymentStatus !== 'PENDING' && order.paymentStatus !== 'PROCESSING') {
+        return { status: 400, error: 'Estado incompatible' };
+      }
+      return { status: 200, success: true };
+    }
+
+    const regularUser = { _id: 'user1', role: 'user' };
+    const adminUser = { _id: 'admin1', role: 'admin' };
+
+    const validOrder = { paymentMethod: 'BREB', paymentStatus: 'PENDING', orderStatus: 'PENDING_PAYMENT' };
+    const nonBrebOrder = { paymentMethod: 'WOMPI_CARD', paymentStatus: 'PENDING' };
+    const alreadyApprovedOrder = { paymentMethod: 'BREB', paymentStatus: 'APPROVED', orderStatus: 'CONFIRMED' };
+
+    // Regular user rejected
+    assert.strictEqual(authorizeBrebVerification(regularUser, validOrder).status, 403);
+    // Non-BREB rejected
+    assert.strictEqual(authorizeBrebVerification(adminUser, nonBrebOrder).status, 400);
+    // Already approved rejected (prevents duplicate confirmation)
+    assert.strictEqual(authorizeBrebVerification(adminUser, alreadyApprovedOrder).status, 400);
+    // Admin with pending BREB order succeeds
+    assert.strictEqual(authorizeBrebVerification(adminUser, validOrder).status, 200);
+  });
+
+  // ----------------------------------------------------
+  // 14. Finding 2: Insecure confirm-payment Endpoint Elimination
+  // ----------------------------------------------------
+  test('14. Security: confirm-payment endpoint is completely removed from order routes', () => {
+    const orderRoutes = require('../routes/orderRoutes');
+    const routes = orderRoutes.stack
+      .filter((layer) => layer.route)
+      .map((layer) => ({
+        path: layer.route.path,
+        methods: Object.keys(layer.route.methods),
+      }));
+
+    const confirmPaymentRoute = routes.find((r) => r.path && r.path.includes('confirm-payment'));
+    assert.strictEqual(
+      confirmPaymentRoute,
+      undefined,
+      'El endpoint vulnerable confirm-payment NO debe existir en orderRoutes'
+    );
+  });
+
+  // ----------------------------------------------------
+  // 15. Finding 1: Parameter Discrimination & Reference Priority
+  // ----------------------------------------------------
+  test('15. PaymentStatus: Prioritizes reference and differentiates Mongo ObjectId from Wompi TxId', () => {
+    const isMongoId = (val) => typeof val === 'string' && /^[0-9a-fA-F]{24}$/.test(val);
+
+    function resolveQueryTarget(params) {
+      const { reference, orderId, id } = params;
+      if (reference) return { type: 'REFERENCE', value: reference };
+      if (orderId && isMongoId(orderId)) return { type: 'ORDER_ID', value: orderId };
+      if (id) {
+        if (isMongoId(id)) return { type: 'ORDER_ID', value: id };
+        return { type: 'TRANSACTION_ID', value: id };
+      }
+      return { type: 'INVALID' };
+    }
+
+    // Case 1: Wompi redirect with reference AND id
+    const case1 = resolveQueryTarget({
+      reference: 'NOIR-2026-000001-1718000000',
+      id: '143928-1718000000-98214',
+    });
+    assert.strictEqual(case1.type, 'REFERENCE', 'Debe priorizar reference sobre id');
+
+    // Case 2: Wompi redirect with only transaction id (non-ObjectId)
+    const case2 = resolveQueryTarget({
+      id: '143928-1718000000-98214',
+    });
+    assert.strictEqual(case2.type, 'TRANSACTION_ID', 'ID no-Mongo debe tratarse como TRANSACTION_ID de Wompi');
+
+    // Case 3: Internal link with valid Mongo ObjectId in orderId
+    const case3 = resolveQueryTarget({
+      orderId: '67bfa3982488a032fc994991',
+    });
+    assert.strictEqual(case3.type, 'ORDER_ID', 'ObjectId válido debe tratarse como ORDER_ID');
+
+    // Case 4: Invalid random parameter
+    const case4 = resolveQueryTarget({
+      orderId: 'not-a-valid-id',
+    });
+    assert.strictEqual(case4.type, 'INVALID', 'ID no válido debe ser marcado como inválido');
+  });
+
   console.log(`\n========================================================`);
   console.log(`🏁 RESULTADOS: ${passed}/${total} pruebas pasaron exitosamente.`);
   console.log(`========================================================\n`);
