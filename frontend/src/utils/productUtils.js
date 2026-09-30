@@ -80,3 +80,16 @@ export const normalizeCategory = (category) => {
   const trimmed = category.trim();
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 };
+
+/**
+ * Generates a stable composite key for cart items combining product ID, size, and color.
+ * Guarantees that the same product in different sizes or colors forms independent cart lines.
+ */
+export const getCartItemKey = (product, selectedSize, selectedColor) => {
+  if (!product) return '';
+  const id = typeof product === 'string' ? product : (product._id || product.id || product.productId || '');
+  const size = (selectedSize || product?.selectedSize || product?.talla || 'STD').toString().trim().toUpperCase();
+  const color = (selectedColor || product?.selectedColor || product?.color || 'STD').toString().trim().toUpperCase();
+  return `${id}_${size}_${color}`;
+};
+

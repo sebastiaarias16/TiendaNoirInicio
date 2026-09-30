@@ -18,19 +18,19 @@ router.get('/generate-invoice/:orderId', async (req, res) => {
     // 🔄 Datos para la factura
     const orderData = {
       orderId: order._id,
-      customerName: user.name,
-      customerEmail: user.email,
-      customerAddress: order.address || "No especificada",
+      customerName: order.customerName || user.name,
+      customerEmail: order.customerEmail || user.email,
+      customerAddress: order.shippingAddress || order.address || user.address || "No especificada",
       customerCity: order.city || "Bogotá",
       items: order.products.map(p => ({
-        name: p.productId?.nombre || "Producto sin nombre",
+        name: p.nombre || p.productId?.nombre || "Prenda NOIR",
         size: p.talla || "-",
         color: p.color || "-",
         quantity: p.quantity,
-        price: p.productId?.precio || 0
+        price: p.unitPrice || p.productId?.precio || 0
       })),
-      subtotal: order.total,
-      shipping: 0,
+      subtotal: order.subtotal || order.total,
+      shipping: order.shippingCost || 0,
       total: order.total
     };
 

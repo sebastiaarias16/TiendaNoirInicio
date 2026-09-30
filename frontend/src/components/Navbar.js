@@ -14,7 +14,7 @@ const Navbar = ({ user, onLogout }) => {
   const dropdownRef = useRef(null);
   const location = useLocation();
 
-  const { cartItems } = useContext(CartContext);
+  const { cartItems, openCartDrawer } = useContext(CartContext);
   const cartItemCount = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
   // Parse current query params for active link indication
@@ -201,11 +201,12 @@ const Navbar = ({ user, onLogout }) => {
               </div>
             )}
 
-            {/* Shopping Cart */}
-            <Link
-              to="/checkout"
+            {/* Shopping Cart Button */}
+            <button
+              type="button"
               className={`nav-action-btn cart-btn ${badgeAnimate ? 'pulse' : ''}`}
-              aria-label={`Carrito de compras, ${cartItemCount} artículos`}
+              onClick={openCartDrawer}
+              aria-label={`Abrir carrito de compras, ${cartItemCount} artículos`}
             >
               <FiShoppingBag size={20} aria-hidden="true" />
               {cartItemCount > 0 && (
@@ -213,7 +214,7 @@ const Navbar = ({ user, onLogout }) => {
                   {cartItemCount}
                 </span>
               )}
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -270,9 +271,16 @@ const Navbar = ({ user, onLogout }) => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/checkout" onClick={() => setMobileMenuOpen(false)}>
+                  <button
+                    type="button"
+                    className="mobile-drawer-cart-btn"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      openCartDrawer();
+                    }}
+                  >
                     Carrito de Compras ({cartItemCount})
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>

@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
-const Product = require('../models/Product'); // lo subimos arriba
+const Product = require('../models/Product');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
@@ -9,171 +10,278 @@ const fs = require('fs');
 const generateInvoicePDF = require('../utils/generateInvoicePDF');
 const sendInvoiceEmail = require('../utils/sendInvoiceEmail');
 
-// 📌 Ruta para crear una orden
+/**
+ * 📌 POST /api/orders
+ * Authoritative order creation with server-side price recalculation,
+ * stock verification, atomic conditional stock decrement with rollback,
+ * and Bogotá delivery policy enforcement.
+ */
 router.post('/', async (req, res) => {
-  console.log('🛒 Datos recibidos en el backend:', req.body);
-
   try {
-    const { userId, products, total, paymentMethod } = req.body;
-
-    // Siempre Bogotá (por ahora)
-    const city = "Bogotá";
-
-    // Validación de productos
-    for (const p of products) {
-      if (!p.talla || !p.color || !p.quantity) {
-        return res.status(400).json({ error: 'Todos los productos deben tener talla, color y cantidad seleccionados.' });
-      }
-    }
-
-    if (!userId || !products || !total) {
-      return res.status(400).json({ error: '❌ Faltan datos en la orden' });
-    }
-
-    if (paymentMethod === 'contra_entrega' && city.toLowerCase() !== 'bogotá') {
-      return res.status(400).json({ error: 'El pago contra entrega solo está disponible en Bogotá.' });
-    }
-
-    // 👇 Parseo seguro de productos
-    const parsedProducts = products.map(p => ({
-      productId: new mongoose.Types.ObjectId(p.productId),
-      quantity: p.quantity,
-      talla: p.talla,
-      color: p.color
-    }));
-
-    // Crear la orden
-    const newOrder = new Order({
+    const {
       userId,
-      products: parsedProducts,
-      total,
-      paymentMethod,
-      city,
-      estado: "pendiente"
+      products,
+      paymentMethod = 'contra_entrega',
+      city = 'Bogotá',
+      customerName,
+      customerEmail,
+      phone,
+      shippingAddress,
+    } = req.body;
+
+    // 1. Validate customer & userId
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Identificador de usuario inválido o ausente.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado en la base de datos.' });
+    }
+
+    // 2. Validate products array
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ error: 'El carrito no contiene productos válidos.' });
+    }
+
+    // 3. Authoritatively fetch and validate all products and compute totals
+    let serverSubtotal = 0;
+    const authoritativeProducts = [];
+
+    for (const item of products) {
+      const pid = item.productId || item._id;
+      if (!pid || !mongoose.Types.ObjectId.isValid(pid)) {
+        return res.status(400).json({ error: `Identificador de producto inválido: ${pid}` });
+      }
+
+      const quantity = parseInt(item.quantity, 10);
+      if (isNaN(quantity) || quantity < 1) {
+        return res.status(400).json({ error: 'La cantidad de cada prenda debe ser mínimo 1.' });
+      }
+
+      const talla = (item.talla || item.selectedSize || 'M').toString().trim().toUpperCase();
+      const color = (item.color || item.selectedColor || 'Negro').toString().trim();
+
+      const dbProduct = await Product.findById(pid);
+      if (!dbProduct) {
+        return res.status(404).json({ error: `El producto solicitado ya no se encuentra en el catálogo oficial.` });
+      }
+
+      const availableStock = typeof dbProduct.stock === 'number' ? dbProduct.stock : 0;
+      if (availableStock < quantity) {
+        return res.status(400).json({
+          error: `Stock insuficiente para "${dbProduct.nombre}". Disponibles en almacén: ${availableStock}. Solicitados: ${quantity}.`,
+        });
+      }
+
+      const unitPrice = Number(dbProduct.precio) || 0;
+      const lineTotal = unitPrice * quantity;
+      serverSubtotal += lineTotal;
+
+      authoritativeProducts.push({
+        productId: dbProduct._id,
+        nombre: dbProduct.nombre,
+        quantity,
+        talla,
+        color,
+        unitPrice,
+        lineTotal,
+      });
+    }
+
+    // 4. Delivery validation
+    const shippingCost = 0; // Envíos en Bogotá coordinados directamente
+    const serverTotal = serverSubtotal + shippingCost;
+
+    const validPaymentMethods = ['online', 'contra_entrega', 'nequi'];
+    const validatedPaymentMethod = validPaymentMethods.includes(paymentMethod)
+      ? paymentMethod
+      : 'contra_entrega';
+
+    // 5. Atomic conditional stock decrement with rollback on conflict
+    const decrementedProducts = [];
+    for (const item of authoritativeProducts) {
+      const updated = await Product.findOneAndUpdate(
+        { _id: item.productId, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updated) {
+        // Rollback any successfully decremented items in this transaction
+        for (const rollback of decrementedProducts) {
+          await Product.findByIdAndUpdate(rollback.productId, {
+            $inc: { stock: rollback.quantity },
+          });
+        }
+        return res.status(409).json({
+          error: `El inventario de "${item.nombre}" cambió durante la transacción. Por favor revisa las unidades disponibles.`,
+        });
+      }
+
+      decrementedProducts.push(item);
+    }
+
+    // 6. Persist order with authoritative data
+    const newOrder = new Order({
+      userId: user._id,
+      customerName: (customerName || user.name).trim(),
+      customerEmail: (customerEmail || user.email).trim(),
+      phone: (phone || user.phone || '').trim(),
+      shippingAddress: (shippingAddress || user.address || 'Bogotá D.C.').trim(),
+      city: city || 'Bogotá',
+      products: authoritativeProducts,
+      subtotal: serverSubtotal,
+      shippingCost,
+      total: serverTotal,
+      status: 'pendiente',
+      paymentMethod: validatedPaymentMethod,
     });
 
     await newOrder.save();
 
-    // 👇 Actualizar stock después de guardar la orden
-    for (const p of parsedProducts) {
-      await Product.findByIdAndUpdate(
-        p.productId,
-        { $inc: { stock: -p.quantity } },
-        { new: true }
-      );
-    }
-
-    res.status(201).json({ message: '✅ Orden creada', order: newOrder });
-
+    console.log(`✅ Orden ${newOrder._id} creada exitosamente. Total autoritativo: $${serverTotal} COP`);
+    return res.status(201).json({
+      message: '✅ Orden creada exitosamente',
+      order: newOrder,
+    });
   } catch (error) {
-    console.error('❌ Error en el backend:', error.message);
-    res.status(500).json({ error: '❌ Error interno del servidor' });
+    console.error('❌ Error en creación de orden:', error.message);
+    return res.status(500).json({ error: 'Error interno del servidor al procesar la orden.' });
   }
 });
 
-
-// 📌 Obtener las órdenes de un usuario específico
+/**
+ * 📌 GET /api/orders/user/:userId
+ * Retrieves orders for a specific authenticated user.
+ */
 router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'Falta el ID del usuario' });
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Falta o es inválido el ID del usuario.' });
     }
 
-    const orders = await Order.find({ userId }).populate({
-      path: 'products.productId',
-      select: 'nombre precio' // Trae solo nombre y precio del producto
-    });
+    const orders = await Order.find({ userId })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'products.productId',
+        select: 'nombre precio imagen',
+      });
 
-    console.log('📦 Órdenes encontradas:', orders);
-
-    const formattedOrders = orders.map(order => ({
+    const formattedOrders = orders.map((order) => ({
       _id: order._id,
       createdAt: order.createdAt,
       total: order.total,
-      items: order.products.map(p => ({
-        nombre: p.productId?.nombre || 'Producto eliminado',
+      subtotal: order.subtotal || order.total,
+      status: order.status || order.estado || 'pendiente',
+      paymentMethod: order.paymentMethod,
+      city: order.city,
+      items: order.products.map((p) => ({
+        productId: p.productId?._id || p.productId,
+        nombre: p.nombre || p.productId?.nombre || 'Prenda NOIR',
         cantidad: p.quantity,
-        precio: p.productId?.precio || 0
-      }))
+        talla: p.talla || 'M',
+        color: p.color || 'Negro',
+        precio: p.unitPrice || p.productId?.precio || 0,
+      })),
     }));
 
     res.json(formattedOrders);
   } catch (err) {
     console.error('❌ Error al obtener órdenes del usuario:', err.message);
-    res.status(500).json({ error: 'Error al obtener las órdenes del usuario' });
+    res.status(500).json({ error: 'Error al obtener las órdenes del usuario.' });
   }
 });
 
+/**
+ * 📌 GET /api/orders/:id
+ * Retrieves a single order by ID for details or invoice generation.
+ */
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: 'Orden no encontrada.' });
+    }
 
-// 📌 Endpoint debug para revisar todas las órdenes
-router.get('/debug', async (req, res) => {
-  const orders = await Order.find().populate('products.productId');
-  res.json(orders);
+    const order = await Order.findById(id).populate('products.productId');
+    if (!order) {
+      return res.status(404).json({ error: 'Orden no encontrada.' });
+    }
+
+    res.json(order);
+  } catch (err) {
+    console.error('❌ Error al obtener orden por ID:', err.message);
+    res.status(500).json({ error: 'Error al consultar la orden.' });
+  }
 });
 
-
-// 📌 Confirmar pago de una orden
+/**
+ * 📌 POST /api/orders/confirm-payment/:orderId
+ * Confirms payment, marks order as paid, generates PDF invoice, and sends email.
+ */
 router.post('/confirm-payment/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
-    console.log('🟢 Entrando a confirm-payment con ID:', orderId);
+    if (!orderId || !mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'ID de orden inválido.' });
+    }
 
     const order = await Order.findById(orderId)
       .populate('products.productId')
       .populate('userId');
-      console.log('✅ Orden encontrada:', order?._id);
 
-    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada.' });
 
-    if (order.estado === 'pagado') {
+    if (order.status === 'pagado') {
       return res.status(400).json({ error: 'La orden ya fue confirmada y pagada.' });
     }
 
-    // ✅ Cambiar estado a pagado
-    order.estado = 'pagado';
+    order.status = 'pagado';
     await order.save();
-    console.log('💾 Estado actualizado a pagado.');
 
-    // 📄 Ruta donde se guardará temporalmente el PDF
-    const invoicePath = path.join(__dirname, `../facturas/factura_${order._id}.pdf`);
+    // Generate invoice directory
+    const invoicesDir = path.join(__dirname, '../invoices');
+    if (!fs.existsSync(invoicesDir)) {
+      fs.mkdirSync(invoicesDir, { recursive: true });
+    }
+    const invoicePath = path.join(invoicesDir, `factura_${order._id}.pdf`);
 
-    // Asegura que la carpeta exista
-    if (!fs.existsSync(path.join(__dirname, '../facturas'))) {
-      fs.mkdirSync(path.join(__dirname, '../facturas'));
+    // PDF data payload
+    const invoicePayload = {
+      _id: order._id,
+      customerName: order.customerName || order.userId?.name || 'Cliente NOIR',
+      customerEmail: order.customerEmail || order.userId?.email || 'sin-email',
+      customerAddress: order.shippingAddress || order.userId?.address || 'Bogotá D.C.',
+      customerCity: order.city || 'Bogotá',
+      items: order.products.map((p) => ({
+        name: p.nombre || p.productId?.nombre || 'Prenda NOIR',
+        size: p.talla || 'M',
+        color: p.color || 'Negro',
+        quantity: p.quantity,
+        price: p.unitPrice || p.productId?.precio || 0,
+      })),
+      subtotal: order.subtotal || order.total,
+      shipping: order.shippingCost || 0,
+      total: order.total,
+    };
+
+    try {
+      await generateInvoicePDF(invoicePayload, invoicePath);
+      if (order.userId?.email || order.customerEmail) {
+        const destEmail = order.customerEmail || order.userId?.email;
+        const destName = order.customerName || order.userId?.name || 'Cliente';
+        await sendInvoiceEmail(destEmail, destName, invoicePath);
+      }
+    } catch (invoiceErr) {
+      console.warn('⚠️ Advertencia: No se pudo enviar el correo de factura (modo desarrollo/sin credenciales SMTP):', invoiceErr.message);
     }
 
-    console.log('🧾 Generando factura PDF...');
-    // 📄 Generar factura PDF
-    await generateInvoicePDF({
-      _id: order._id,
-      customerName: order.userId?.name || 'Cliente',
-      customerEmail: order.userId?.email || 'sin-email',
-      customerAddress: order.userId?.address || 'Sin dirección',
-      customerCity: order.city,
-      items: order.products.map(p => ({
-        name: p.productId.nombre,
-        size: p.talla,
-        color: p.color,
-        quantity: p.quantity,
-        price: p.productId.precio
-      })),
-      subtotal: order.total,
-      shipping: 0,
-      total: order.total
-    }, invoicePath); // 👈 ahora sí se pasa la ruta del archivo
-
-      console.log('📧 Enviando factura por correo...');
-    // ✉️ Enviar factura por correo
-    await sendInvoiceEmail(order.userId.email, order.userId.name || 'Cliente', invoicePath);
-
-
-    console.log('✅ Todo completado.');
-    res.json({ message: '✅ Pago confirmado y factura enviada', order });
+    res.json({ message: '✅ Pago confirmado y factura generada.', order });
   } catch (error) {
     console.error('❌ Error al confirmar pago:', error.message);
-    res.status(500).json({ error: 'Error al confirmar el pago' });
+    res.status(500).json({ error: 'Error al confirmar el pago de la orden.' });
   }
 });
 

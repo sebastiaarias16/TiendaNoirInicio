@@ -9,7 +9,8 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendVerificationEmail = async (to, token) => {
-  const url = `http://localhost:3001/verify/${token}`;
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const url = `${frontendUrl}/verify/${token}`;
 
   await transporter.sendMail({
     from: '"Noir" <no-reply@noir.com>',

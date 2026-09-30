@@ -1,339 +1,649 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-
 import { CartContext } from '../CartContext';
 import { createOrder } from '../api/api';
 import { getUser } from '../api/auth';
-
+import Footer from '../components/Footer';
+import { formatCOP, getImageSrc } from '../utils/productUtils';
+import {
+  FiShoppingBag,
+  FiTruck,
+  FiShield,
+  FiTrash2,
+  FiMinus,
+  FiPlus,
+  FiCheckCircle,
+  FiAlertTriangle,
+  FiMessageSquare,
+  FiFileText,
+} from 'react-icons/fi';
 import '../styles/checkout.css';
-import '../styles/Cartlocked.css';
 
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
-
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
+const WHATSAPP_PHONE = '573124252861';
 
 const Checkout = () => {
-  const [message, setMessage] = useState('');
-  // eslint-disable-next-line no-unused-vars
-  const [paymentMethod, setPaymentMethod] = useState('online'); // reserved for MercadoPago integration
-  // eslint-disable-next-line no-unused-vars
-  const [city, setCity] = useState(''); // reserved for multi-city shipping expansion
-  const [orderId, setOrderId] = useState(null);
-  const [user, setUser] = useState(null);
-
   const {
     cartItems,
-    setCartItems,
     clearCart,
     removeFromCart,
     incrementQuantity,
     decrementQuantity,
+    subtotal,
   } = useContext(CartContext);
 
-  useEffect(() => {
-    const loadUserAndCart = async () => {
-      const loggedUser = await getUser();
-      setUser(loggedUser);
-      const storedCart = JSON.parse(localStorage.getItem('cartItems')) || [];
-      setCartItems(storedCart);
-    };
-    loadUserAndCart();
-  }, [setCartItems]);
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  const updateCartItem = (productId, updates) => {
-    setCartItems(prev =>
-      prev.map(item =>
-        item._id === productId ? { ...item, ...updates } : item
-      )
-    );
+  // Customer & Delivery Form State
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    neighborhood: '',
+    notes: '',
+    city: 'Bogotá',
+    paymentMethod: 'contra_entrega',
+  });
+
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverError, setServerError] = useState('');
+  const [createdOrder, setCreatedOrder] = useState(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceMessage, setInvoiceMessage] = useState('');
+
+  // Load user data upon mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchUser = async () => {
+      try {
+        const loggedUser = await getUser();
+        if (isMounted && loggedUser) {
+          setUser(loggedUser);
+          setFormData((prev) => ({
+            ...prev,
+            name: loggedUser.name || '',
+            email: loggedUser.email || '',
+            phone: loggedUser.phone || '',
+            address: loggedUser.address || '',
+          }));
+        }
+      } catch (err) {
+        console.error('Error cargando usuario en checkout:', err);
+      } finally {
+        if (isMounted) setLoadingUser(false);
+      }
+    };
+    fetchUser();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors((prev) => ({ ...prev, [name]: '' }));
+    }
   };
 
-  const total = cartItems.reduce((acc, item) => acc + item.precio * item.quantity, 0);
+  // Client-side form validation before server submission
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.name.trim()) errors.name = 'El nombre completo es requerido.';
+    if (!formData.email.trim()) {
+      errors.email = 'El correo electrónico es requerido.';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Ingresa un correo electrónico válido.';
+    }
+    if (!formData.phone.trim()) {
+      errors.phone = 'El teléfono o WhatsApp de contacto es requerido.';
+    } else if (formData.phone.trim().length < 7) {
+      errors.phone = 'Ingresa un número telefónico válido.';
+    }
+    if (!formData.address.trim()) {
+      errors.address = 'La dirección de entrega en Bogotá es requerida.';
+    }
 
-  const generateWhatsappMessage = () => {
-    if (!cartItems.length) return '';
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-    let mensaje = "🖤 Nuevo pedido en Noir 🖤%0A%0A";
+  // Generate WhatsApp pre-filled text
+  const buildWhatsAppUrl = (order) => {
+    const orderNum = order._id.slice(-6).toUpperCase();
+    let msg = `*NOIR APPAREL — PEDIDO %23${orderNum}*%0A%0A`;
+    msg += `*Cliente:* ${encodeURIComponent(order.customerName || formData.name)}%0A`;
+    msg += `*Teléfono:* ${encodeURIComponent(order.phone || formData.phone)}%0A`;
+    msg += `*Dirección:* ${encodeURIComponent(order.shippingAddress || formData.address)} (Bogotá D.C.)%0A`;
+    if (formData.neighborhood) {
+      msg += `*Barrio:* ${encodeURIComponent(formData.neighborhood)}%0A`;
+    }
+    msg += `%0A*PRENDAS SELECCIONADAS:*%0A`;
 
-    cartItems.forEach(item => {
-      mensaje += `Producto: ${item.nombre}%0A`;
-      mensaje += `Talla: ${item.selectedSize || 'N/A'}%0A`;
-      mensaje += `Color: ${item.selectedColor || 'N/A'}%0A`;
-      mensaje += `Cantidad: ${item.quantity}%0A`;
-      mensaje += `Subtotal: $${item.precio * item.quantity}%0A%0A`;
+    order.products.forEach((item) => {
+      msg += `• *${encodeURIComponent(item.nombre)}*%0A`;
+      msg += `  Talla: ${item.talla} | Color: ${encodeURIComponent(item.color)} | Cant: ${item.quantity}%0A`;
+      msg += `  Precio: $${(item.unitPrice || 0) * item.quantity} COP%0A`;
     });
 
-    mensaje += `TOTAL: $${total}%0A`;
-    mensaje += `Cliente: ${user?.name} (${user?.email})%0A`;
+    msg += `%0A*TOTAL A PAGAR:* $${order.total} COP%0A`;
+    msg += `*Método:* Coordinación Contra Entrega / Transferencia%0A`;
+    msg += `%0A_Hola NOIR, acabo de registrar este pedido en la tienda y deseo coordinar la entrega._`;
 
-    return mensaje;
+    return `https://wa.me/${WHATSAPP_PHONE}?text=${msg}`;
   };
 
-  const redirectToWhatsapp = () => {
-    const telefono = "573124252861"; // Cambia aquí por tu número con código país (sin + ni espacios)
-    const mensaje = generateWhatsappMessage();
-    if (!mensaje) return alert('El carrito está vacío.');
+  // Submit order to backend
+  const handlePlaceOrder = async (e) => {
+    e.preventDefault();
+    setServerError('');
 
-    const url = `https://wa.me/${telefono}?text=${mensaje}`;
-    window.open(url, '_blank');
-  };
-
-  const handleFinalizePurchase = async () => {
-    try {
-      const success = await handleCheckout(); // 🔹 ahora retorna true/false
-      if (success) {
-        redirectToWhatsapp(); // 🔹 solo abrir WhatsApp si todo salió bien
-      }
-    } catch (err) {
-      console.error("❌ Error al finalizar compra:", err);
-      setMessage("❌ No se pudo finalizar la compra.");
-    }
-  };
-
-  const handleCheckout = async () => {
     if (!user) {
-      alert('Debes iniciar sesión para comprar');
-      return false;
-    }
-    if (!cartItems.length) {
-      setMessage('❌ El carrito está vacío.');
-      return false;
-    }
-    if (paymentMethod === 'contra_entrega' && city.toLowerCase() !== 'bogotá') {
-      alert('⚠️ El pago contra entrega solo está disponible en Bogotá.');
-      return false;
+      setServerError('Debes iniciar sesión para procesar tu orden.');
+      return;
     }
 
-    for (let item of cartItems) {
-      if (!item.selectedSize || !item.selectedColor || !item.quantity) {
-        alert(`⚠️ Debes elegir talla, color y cantidad para el producto: ${item.nombre}`);
-        return false;
-      }
+    if (cartItems.length === 0) {
+      setServerError('El carrito está vacío. Agrega prendas antes de continuar.');
+      return;
     }
 
-    const orderData = {
+    if (!validateForm()) {
+      setServerError('Por favor completa todos los campos requeridos marcados en rojo.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const orderPayload = {
       userId: user._id,
-      products: cartItems.map(item => ({
+      customerName: formData.name,
+      customerEmail: formData.email,
+      phone: formData.phone,
+      shippingAddress: formData.neighborhood
+        ? `${formData.address}, Barrio: ${formData.neighborhood}`
+        : formData.address,
+      city: 'Bogotá',
+      paymentMethod: formData.paymentMethod,
+      products: cartItems.map((item) => ({
         productId: item._id,
         quantity: item.quantity,
-        talla: item.selectedSize,
-        color: item.selectedColor,
+        talla: item.selectedSize || 'M',
+        color: item.selectedColor || 'Negro',
       })),
-      total,
-      paymentMethod,
-      city,
     };
 
     try {
-      // 1️⃣ Crear orden
-      const response = await createOrder(orderData);
-      const newOrderId = response.order._id;
-      setOrderId(newOrderId);
-      setMessage(`✅ Pedido generado: ${newOrderId}`);
-        clearCart();
-        return true;
+      const response = await createOrder(orderPayload);
+      const savedOrder = response.order;
+      setCreatedOrder(savedOrder);
+      clearCart();
+    } catch (err) {
+      console.error('Error al procesar orden en servidor:', err);
+      const msg =
+        err.response?.data?.error ||
+        'No fue posible procesar la orden. Por favor verifica tu conexión o stock disponible.';
+      setServerError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-      /*
-      // 2️⃣ Generar factura
-      const invoiceRes = await fetch(`${API_URL}/api/invoice/generate-invoice/${newOrderId}`);
-      const data = await invoiceRes.json();
-      console.log("📩 Respuesta de factura:", data); // 👈 debug
-
+  // Generate / Download Invoice
+  const handleDownloadInvoice = async () => {
+    if (!createdOrder) return;
+    setInvoiceLoading(true);
+    setInvoiceMessage('');
+    try {
+      const res = await fetch(`${API_URL}/api/invoice/generate-invoice/${createdOrder._id}`);
+      const data = await res.json();
       if (data.message) {
-        setMessage("✅ Pedido confirmado. La factura fue enviada a tu correo.");
-        clearCart();
-        return true;
+        setInvoiceMessage('Factura generada y enviada a tu correo.');
+        if (data.pdfPath) {
+          window.open(`${API_URL}${data.pdfPath}`, '_blank');
+        }
       } else {
-        setMessage("⚠️ Pedido generado pero hubo un problema al crear la factura.");
-        return false;
+        setInvoiceMessage('Factura en trámite.');
       }
-      */
-    } catch (error) {
-      console.error('❌ Error en la compra:', error.response?.data || error.message);
-      setMessage(`❌ Error: ${error.response?.data?.error || 'No se pudo procesar la compra.'}`);
-      return false;
+    } catch (err) {
+      console.error('Error generando factura:', err);
+      setInvoiceMessage('No se pudo generar la factura en este momento.');
+    } finally {
+      setInvoiceLoading(false);
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const handlePayment = async () => { // reserved for MercadoPago payment integration (Phase 5)
-    if (!user) return alert('Debes iniciar sesión para comprar');
+  // ----------------------------------------------------
+  // UNAPPROVED / NOT LOGGED IN STATE
+  // ----------------------------------------------------
+  if (!loadingUser && !user) {
+    return (
+      <>
+        <main className="checkout-page-wrapper">
+          <div className="container-editorial checkout-auth-gate">
+            <FiShield size={48} className="gate-icon" aria-hidden="true" />
+            <span className="editorial-label">COMPRA SEGURA NOIR</span>
+            <h1 className="gate-title">INICIA SESIÓN PARA CONTINUAR</h1>
+            <p className="gate-desc">
+              Para garantizar la trazabilidad de tus prendas del DROP 01 y el despacho en Bogotá, por favor ingresa con tu cuenta o regístrate en NOIR.
+            </p>
+            <div className="gate-actions">
+              <Link to="/login" className="noir-btn noir-btn-primary">
+                INICIAR SESIÓN
+              </Link>
+              <Link to="/register" className="noir-btn noir-btn-secondary">
+                CREAR CUENTA
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
-    try {
-      const response = await axios.post(`${API_URL}/api/payment/create-payment`, {
-        userEmail: user.email,
-        productos: cartItems.map(({ nombre, quantity, precio }) => ({ nombre, quantity, precio })),
-      });
+  // ----------------------------------------------------
+  // ORDER SUCCESS STATE
+  // ----------------------------------------------------
+  if (createdOrder) {
+    const waUrl = buildWhatsAppUrl(createdOrder);
 
-      window.location.href = response.data.url;
-    } catch (error) {
-      console.error('❌ Error en el pago:', error);
-      setMessage('❌ Error al procesar el pago.');
-    }
-  };
+    return (
+      <>
+        <main className="checkout-page-wrapper">
+          <div className="container-editorial checkout-success-screen">
+            <FiCheckCircle size={56} className="success-icon" aria-hidden="true" />
+            <span className="editorial-label">ORDEN CONFIRMADA EN SISTEMA</span>
+            <h1 className="success-title">PEDIDO #{createdOrder._id.slice(-6).toUpperCase()} REGISTRADO</h1>
+            <p className="success-desc">
+              Tu orden ha sido guardada en nuestra base de datos con stock reservado. Para coordinar la entrega inmediata en Bogotá D.C. y acordar el método de pago, continúa a nuestro canal oficial de WhatsApp.
+            </p>
 
-  const generateInvoice = async () => {
-    if (!orderId) return alert('No hay orden para generar factura.');
+            <div className="success-order-summary">
+              <div className="summary-row">
+                <span>Cliente:</span>
+                <strong>{createdOrder.customerName}</strong>
+              </div>
+              <div className="summary-row">
+                <span>Dirección de Entrega:</span>
+                <strong>{createdOrder.shippingAddress} (Bogotá)</strong>
+              </div>
+              <div className="summary-row">
+                <span>Total a Pagar:</span>
+                <strong className="summary-total">{formatCOP(createdOrder.total)} COP</strong>
+              </div>
+            </div>
 
-    try {
-      const response = await fetch(`${API_URL}/api/invoice/generate-invoice/${orderId}`);
-      const data = await response.json();
-      if (data.message) {
-        setMessage("✅ Factura generada y enviada a tu correo. ¡Gracias por confiar en NOIR!");
-      }
-    } catch (error) {
-      console.error('❌ Error al generar la factura:', error);
-      setMessage('❌ No se pudo generar la factura.');
-    }
-  };
+            <div className="success-actions">
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="noir-btn noir-btn-primary success-wa-btn"
+              >
+                <FiMessageSquare size={18} aria-hidden="true" />
+                <span>COORDINAR ENTREGA EN WHATSAPP</span>
+              </a>
 
-  if (!user) {
-  return (
-    <main className="main-content">
-      <motion.div
-        className="checkout-auth-warning"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
-        <div className="locked-icon">🔒</div>
-        <h2 className="locked-title">Tu carrito está protegido</h2>
-        <p className="locked-text">
-          Para continuar con tu compra, por favor{" "}
-          <Link to="/login" className="locked-link">Inicia Sesión</Link> o{" "}
-          <Link to="/register" className="locked-link">Regístrate</Link>.
-        </p>
-      </motion.div>
-    </main>
-  );
-}
-
-  return (
-    <main className="main-content">
-      <motion.div
-        className="checkout-container"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <motion.h2
-          className="checkout-header"
-          initial={{ x: -30, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-        >
-          Finaliza tu compra
-        </motion.h2>
-
-        {!cartItems.length ? (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            No hay productos en el carrito
-          </motion.p>
-        ) : (
-          <>
-            <motion.ul className="cart-list" initial="hidden" animate="visible" variants={{
-              visible: { transition: { staggerChildren: 0.1 } },
-              hidden: {}
-            }}>
-              {cartItems.map(item => (
-                <motion.li
-                  key={item._id}
-                  className="cart-item"
-                  variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+              <div className="success-secondary-actions">
+                <button
+                  type="button"
+                  className="noir-btn noir-btn-secondary"
+                  onClick={handleDownloadInvoice}
+                  disabled={invoiceLoading}
                 >
-                  <div className="item-info">
-                    <p><strong>{item.nombre}</strong></p>
-                    <p>${item.precio}</p>
+                  <FiFileText size={16} aria-hidden="true" />
+                  <span>{invoiceLoading ? 'Generando...' : 'Descargar Factura PDF'}</span>
+                </button>
+
+                <Link to="/orders" className="noir-btn noir-btn-secondary">
+                  Ver Mis Pedidos
+                </Link>
+              </div>
+
+              {invoiceMessage && (
+                <p className="invoice-status-note">{invoiceMessage}</p>
+              )}
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // ----------------------------------------------------
+  // EMPTY CART STATE
+  // ----------------------------------------------------
+  if (cartItems.length === 0) {
+    return (
+      <>
+        <main className="checkout-page-wrapper">
+          <div className="container-editorial checkout-empty-screen">
+            <FiShoppingBag size={52} className="empty-cart-icon" aria-hidden="true" />
+            <span className="editorial-label">CHECKOUT NOIR</span>
+            <h1 className="empty-cart-title">TU CARRITO ESTÁ VACÍO</h1>
+            <p className="empty-cart-desc">
+              No tienes prendas en tu bolsa de compras para proceder al checkout. Explora las piezas de entrenamiento y streetwear del DROP 01.
+            </p>
+            <Link to="/products" className="noir-btn noir-btn-primary">
+              EXPLORAR COLECCIÓN COMPLETA
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // ----------------------------------------------------
+  // MAIN CHECKOUT SCREEN (TWO COLUMNS ON DESKTOP)
+  // ----------------------------------------------------
+  return (
+    <>
+      <main className="checkout-page-wrapper">
+        <div className="container-wide">
+          <div className="checkout-heading-group">
+            <span className="editorial-label">PROCESO DE COMPRA</span>
+            <h1 className="checkout-main-title">FINALIZAR COMPRA</h1>
+          </div>
+
+          {serverError && (
+            <div className="checkout-alert-error" role="alert">
+              <FiAlertTriangle size={18} className="alert-icon" aria-hidden="true" />
+              <span>{serverError}</span>
+            </div>
+          )}
+
+          <div className="checkout-grid-layout">
+            {/* ====================================================
+                LEFT COLUMN: CUSTOMER & DELIVERY INFORMATION
+                ==================================================== */}
+            <section
+              className="checkout-form-section"
+              aria-label="Información del cliente y entrega"
+            >
+              <form onSubmit={handlePlaceOrder} id="checkout-order-form" noValidate>
+                <div className="form-card">
+                  <h2 className="form-section-title">1. DATOS DEL CLIENTE</h2>
+                  <div className="form-fields-grid">
+                    <div className="form-field full-width">
+                      <label htmlFor="input-name" className="field-label">
+                        Nombre Completo *
+                      </label>
+                      <input
+                        id="input-name"
+                        type="text"
+                        name="name"
+                        className={`noir-input ${formErrors.name ? 'input-error' : ''}`}
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Ej: Sebastián Arias"
+                        required
+                      />
+                      {formErrors.name && (
+                        <span className="field-error-text">{formErrors.name}</span>
+                      )}
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="input-email" className="field-label">
+                        Correo Electrónico *
+                      </label>
+                      <input
+                        id="input-email"
+                        type="email"
+                        name="email"
+                        className={`noir-input ${formErrors.email ? 'input-error' : ''}`}
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="tucorreo@ejemplo.com"
+                        required
+                      />
+                      {formErrors.email && (
+                        <span className="field-error-text">{formErrors.email}</span>
+                      )}
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="input-phone" className="field-label">
+                        Teléfono / WhatsApp *
+                      </label>
+                      <input
+                        id="input-phone"
+                        type="tel"
+                        name="phone"
+                        className={`noir-input ${formErrors.phone ? 'input-error' : ''}`}
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="Ej: 312 425 2861"
+                        required
+                      />
+                      {formErrors.phone && (
+                        <span className="field-error-text">{formErrors.phone}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-card" style={{ marginTop: 'var(--space-lg)' }}>
+                  <div className="form-section-header">
+                    <h2 className="form-section-title">2. ENTREGA EN BOGOTÁ D.C.</h2>
+                    <span className="delivery-city-badge">Bogotá D.C.</span>
                   </div>
 
-                  <div className="item-options">
-                    <label>
-                      Talla:
-                        <select 
-                          value={item.selectedSize || ""} 
-                          onChange={e => updateCartItem(item._id, { selectedSize: e.target.value })}
-                        >
-                          <option value="">Elegir talla</option>
-                          {item.tallas.map(size => (
-                            <option key={size} value={size}>{size}</option>
-                          ))}
-                        </select>
+                  <div className="delivery-notice-box">
+                    <FiTruck size={18} className="notice-icon" aria-hidden="true" />
+                    <p>
+                      <strong>COBERTURA EXCLUSIVA BOGOTÁ:</strong> Despachos directos dentro del perímetro urbano de Bogotá. Nuestro equipo se contacta vía WhatsApp tras generar el pedido para confirmar horarios de entrega.
+                    </p>
+                  </div>
+
+                  <div className="form-fields-grid" style={{ marginTop: 'var(--space-md)' }}>
+                    <div className="form-field full-width">
+                      <label htmlFor="input-address" className="field-label">
+                        Dirección de Entrega Exacta *
+                      </label>
+                      <input
+                        id="input-address"
+                        type="text"
+                        name="address"
+                        className={`noir-input ${formErrors.address ? 'input-error' : ''}`}
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        placeholder="Ej: Carrera 15 # 85 - 20 Apto 402"
+                        required
+                      />
+                      {formErrors.address && (
+                        <span className="field-error-text">{formErrors.address}</span>
+                      )}
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="input-neighborhood" className="field-label">
+                        Barrio / Localidad
+                      </label>
+                      <input
+                        id="input-neighborhood"
+                        type="text"
+                        name="neighborhood"
+                        className="noir-input"
+                        value={formData.neighborhood}
+                        onChange={handleInputChange}
+                        placeholder="Ej: Chapinero / Cedritos"
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label htmlFor="input-city" className="field-label">
+                        Ciudad
+                      </label>
+                      <input
+                        id="input-city"
+                        type="text"
+                        name="city"
+                        className="noir-input"
+                        value="Bogotá D.C."
+                        disabled
+                        aria-disabled="true"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-card" style={{ marginTop: 'var(--space-lg)' }}>
+                  <h2 className="form-section-title">3. MÉTODO DE PAGO Y COORDINACIÓN</h2>
+                  <div className="payment-options-list">
+                    <label className="payment-radio-option">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="contra_entrega"
+                        checked={formData.paymentMethod === 'contra_entrega'}
+                        onChange={handleInputChange}
+                      />
+                      <div className="radio-content">
+                        <strong>Pago Contra Entrega en Bogotá (Efectivo o Transferencia)</strong>
+                        <span>Coordinas y pagas al recibir tu pedido en la dirección indicada.</span>
+                      </div>
                     </label>
 
-                    <label>
-                      Color:
-                        <select 
-                          value={item.selectedColor || ""} 
-                          onChange={e => updateCartItem(item._id, { selectedColor: e.target.value })}
-                        >
-                          <option value="">Elegir color</option>
-                          {item.colores.map(color => (
-                            <option key={color} value={color}>{color}</option>
-                          ))}
-                        </select>
-                    </label>
-
-                    <label>
-                      Cantidad:
-                      <div className="quantity-controls">
-                        <button onClick={() => decrementQuantity(item._id)}>-</button>
-                        <span>{item.quantity}</span>
-                        <button onClick={() => incrementQuantity(item._id)}>+</button>
+                    <label className="payment-radio-option">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="nequi"
+                        checked={formData.paymentMethod === 'nequi'}
+                        onChange={handleInputChange}
+                      />
+                      <div className="radio-content">
+                        <strong>Transferencia Inmediata (Nequi / Daviplata / Bancolombia)</strong>
+                        <span>Confirmación directa mediante comprobante oficial por WhatsApp.</span>
                       </div>
                     </label>
                   </div>
+                </div>
+              </form>
+            </section>
 
-                  <motion.button
-                    className="remove-button"
-                    whileHover={{ scale: 1.05 }}
-                    onClick={() => removeFromCart(item._id)}
-                  >
-                    Eliminar
-                  </motion.button>
-                </motion.li>
-              ))}
-            </motion.ul>
+            {/* ====================================================
+                RIGHT COLUMN: ORDER SUMMARY & CTAS
+                ==================================================== */}
+            <aside className="checkout-summary-section" aria-label="Resumen de la orden">
+              <div className="summary-card">
+                <h2 className="summary-title">RESUMEN DEL PEDIDO</h2>
 
-            <div className="checkout-summary">
-              <h3>Total: ${total}</h3>
-              <p><strong>Por el momento, NOIR realiza pedidos únicamente en la ciudad de Bogotá.
-                Estamos trabajando para expandirnos y llegar pronto a nuevas ciudades.</strong></p>
-              {/*<label>
-                Ciudad:
-                <input type="text" value={city} onChange={e => setCity(e.target.value)} />
-              </label>
+                {/* Items List */}
+                <ul className="checkout-items-list">
+                  {cartItems.map((item) => {
+                    const itemKey = item.cartKey || item._id;
+                    const imageSrc = getImageSrc(item);
+                    const lineTotal = (Number(item.precio) || 0) * (item.quantity || 1);
 
-              <label>
-                Método de Pago:
-                <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
-                  <option value="online">Pago en Línea</option>
-                  {/*<option value="contra_entrega">Pago Contra Entrega</option>*/}{/*
-                </select>
-              </label>*/}
+                    return (
+                      <li key={itemKey} className="checkout-item">
+                        <div className="checkout-item-media">
+                          <img src={imageSrc} alt={item.nombre} />
+                        </div>
+                        <div className="checkout-item-details">
+                          <div className="item-title-row">
+                            <h3 className="checkout-item-name">{item.nombre}</h3>
+                            <button
+                              type="button"
+                              className="item-remove-link"
+                              onClick={() => removeFromCart(itemKey)}
+                              aria-label={`Eliminar ${item.nombre}`}
+                            >
+                              <FiTrash2 size={15} />
+                            </button>
+                          </div>
 
-              <motion.button className="checkout-button" whileTap={{ scale: 0.95 }} onClick={handleFinalizePurchase}>
-                Finalizar Compra
-              </motion.button>
+                          <p className="checkout-item-variant">
+                            Talla: <strong>{item.selectedSize || 'M'}</strong> &bull; Color: <strong>{item.selectedColor || 'Negro'}</strong>
+                          </p>
 
-              {/*paymentMethod === 'online' && (
-                <motion.button className="payment-button" whileTap={{ scale: 0.95 }} onClick={handlePayment}>
-                  Pagar con MercadoPago
-                </motion.button>
-              )*/}
-            </div>
-          </>
-        )}
+                          <div className="checkout-item-bottom">
+                            <div className="checkout-qty-control">
+                              <button
+                                type="button"
+                                className="checkout-qty-btn"
+                                onClick={() => decrementQuantity(itemKey)}
+                                disabled={item.quantity <= 1}
+                                aria-label="Disminuir"
+                              >
+                                <FiMinus size={12} />
+                              </button>
+                              <span className="checkout-qty-val">{item.quantity}</span>
+                              <button
+                                type="button"
+                                className="checkout-qty-btn"
+                                onClick={() => incrementQuantity(itemKey)}
+                                aria-label="Aumentar"
+                              >
+                                <FiPlus size={12} />
+                              </button>
+                            </div>
 
-        {orderId && (
-          <motion.button className="invoice-button" whileHover={{ scale: 1.05 }} onClick={generateInvoice}>
-            Descargar Factura
-          </motion.button>
-        )}
+                            <span className="checkout-line-price">
+                              {formatCOP(lineTotal)}
+                            </span>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
 
-        {message && <motion.p className="checkout-message" animate={{ opacity: 1 }}>{message}</motion.p>}
-      </motion.div>
-    </main>
+                {/* Totals Breakdown */}
+                <div className="checkout-totals-block">
+                  <div className="totals-row">
+                    <span>Subtotal:</span>
+                    <span>{formatCOP(subtotal)}</span>
+                  </div>
+                  <div className="totals-row">
+                    <span>Envío Bogotá D.C.:</span>
+                    <span className="free-shipping">INCLUIDO</span>
+                  </div>
+                  <div className="totals-divider" />
+                  <div className="totals-row total-highlight">
+                    <span>TOTAL:</span>
+                    <span className="final-total">{formatCOP(subtotal)} COP</span>
+                  </div>
+                </div>
+
+                {/* Submit Action Button */}
+                <button
+                  type="submit"
+                  form="checkout-order-form"
+                  className="noir-btn noir-btn-primary checkout-submit-btn"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    'REGISTRANDO PEDIDO...'
+                  ) : (
+                    <>
+                      <span>CONFIRMAR ORDEN Y COORDINAR</span>
+                      <FiMessageSquare size={17} style={{ marginLeft: '8px' }} />
+                    </>
+                  )}
+                </button>
+
+                <div className="checkout-security-guarantee">
+                  <FiShield size={16} className="guarantee-icon" aria-hidden="true" />
+                  <span>Tu orden se almacena de forma segura antes de coordinar en WhatsApp.</span>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </>
   );
 };
 

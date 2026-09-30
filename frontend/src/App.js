@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import CartDrawer from './components/CartDrawer';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -40,6 +41,7 @@ const App = () => {
     <Router>
       <div className="app-wrapper">
         <Navbar user={user} onLogout={handleLogout} />
+        <CartDrawer />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
