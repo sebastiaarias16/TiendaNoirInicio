@@ -17,6 +17,14 @@ const Navbar = ({ user, onLogout }) => {
   const { cartItems } = useContext(CartContext);
   const cartItemCount = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
+  // Parse current query params for active link indication
+  const searchParams = new URLSearchParams(location.search);
+  const currentGender = searchParams.get('gender');
+  const isProducts = location.pathname === '/products' || location.pathname === '/collections';
+  const isMenActive = isProducts && currentGender === 'men';
+  const isWomenActive = isProducts && currentGender === 'women';
+  const isCollectionsActive = isProducts && !currentGender;
+
   // Detect scroll for subtle background elevation
   useEffect(() => {
     const handleScroll = () => {
@@ -26,15 +34,15 @@ const Navbar = ({ user, onLogout }) => {
         setScrolled(false);
       }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close menus on route change
+  // Close menus on route or query change
   useEffect(() => {
     setMobileMenuOpen(false);
     setUserDropdownOpen(false);
-  }, [location]);
+  }, [location.pathname, location.search]);
 
   // Close user dropdown when clicking outside
   useEffect(() => {
@@ -47,6 +55,18 @@ const Navbar = ({ user, onLogout }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   // Animate cart badge on count update
   useEffect(() => {
     if (cartItemCount > 0) {
@@ -56,7 +76,7 @@ const Navbar = ({ user, onLogout }) => {
     }
   }, [cartItemCount]);
 
-  const handlePhilosopyClick = (e) => {
+  const handlePhilosophyClick = (e) => {
     if (location.pathname === '/') {
       e.preventDefault();
       const el = document.getElementById('manifesto');
@@ -78,34 +98,52 @@ const Navbar = ({ user, onLogout }) => {
             type="button"
             className="mobile-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
             aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
+            {mobileMenuOpen ? <FiX size={22} aria-hidden="true" /> : <FiMenu size={22} aria-hidden="true" />}
           </button>
 
           {/* Brand Wordmark */}
           <div className="nav-brand">
-            <Link to="/" className="brand-link" aria-label="NOIR Inicio">
+            <Link to="/" className="brand-link" aria-label="NOIR — Inicio">
               NOIR
             </Link>
           </div>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop Navigation Links: MEN, WOMEN, COLLECTIONS, NOIR */}
           <ul className="nav-links-desktop">
             <li>
-              <Link to="/products" className="nav-item-link">
-                DROP 01
+              <Link
+                to="/products?gender=men"
+                className={`nav-item-link ${isMenActive ? 'active' : ''}`}
+              >
+                MEN
               </Link>
             </li>
             <li>
-              <Link to="/products" className="nav-item-link">
-                COLECCIÓN
+              <Link
+                to="/products?gender=women"
+                className={`nav-item-link ${isWomenActive ? 'active' : ''}`}
+              >
+                WOMEN
               </Link>
             </li>
             <li>
-              <a href="#manifesto" onClick={handlePhilosopyClick} className="nav-item-link">
-                FILOSOFÍA
+              <Link
+                to="/products"
+                className={`nav-item-link ${isCollectionsActive ? 'active' : ''}`}
+              >
+                COLLECTIONS
+              </Link>
+            </li>
+            <li>
+              <a
+                href="/#manifesto"
+                onClick={handlePhilosophyClick}
+                className="nav-item-link"
+              >
+                NOIR
               </a>
             </li>
           </ul>
@@ -122,12 +160,12 @@ const Navbar = ({ user, onLogout }) => {
                   aria-label="Menú de usuario"
                   aria-expanded={userDropdownOpen}
                 >
-                  <FiUser size={20} />
+                  <FiUser size={20} aria-hidden="true" />
                   <span className="user-firstname">{user.name?.split(' ')[0]}</span>
                 </button>
 
                 {userDropdownOpen && (
-                  <div className="noir-dropdown-menu">
+                  <div className="noir-dropdown-menu" role="menu">
                     <div className="dropdown-header">
                       <p className="dropdown-user-name">{user.name}</p>
                       <p className="dropdown-user-email">{user.email}</p>
@@ -135,6 +173,7 @@ const Navbar = ({ user, onLogout }) => {
                     <div className="dropdown-divider" />
                     <Link
                       to="/orders"
+                      role="menuitem"
                       className="dropdown-link"
                       onClick={() => setUserDropdownOpen(false)}
                     >
@@ -142,6 +181,7 @@ const Navbar = ({ user, onLogout }) => {
                     </Link>
                     <button
                       type="button"
+                      role="menuitem"
                       className="dropdown-link logout"
                       onClick={() => {
                         setUserDropdownOpen(false);
@@ -165,9 +205,9 @@ const Navbar = ({ user, onLogout }) => {
             <Link
               to="/checkout"
               className={`nav-action-btn cart-btn ${badgeAnimate ? 'pulse' : ''}`}
-              aria-label={`Carrito de compras con ${cartItemCount} productos`}
+              aria-label={`Carrito de compras, ${cartItemCount} artículos`}
             >
-              <FiShoppingBag size={20} />
+              <FiShoppingBag size={20} aria-hidden="true" />
               {cartItemCount > 0 && (
                 <span ref={badgeRef} className="cart-badge-indicator">
                   {cartItemCount}
@@ -178,48 +218,107 @@ const Navbar = ({ user, onLogout }) => {
         </div>
 
         {/* Mobile Navigation Drawer */}
-        <div className={`mobile-nav-drawer ${mobileMenuOpen ? 'open' : ''}`}>
+        <div
+          className={`mobile-nav-drawer ${mobileMenuOpen ? 'open' : ''}`}
+          aria-hidden={!mobileMenuOpen}
+        >
           <div className="mobile-drawer-inner">
-            <ul className="mobile-links-list">
-              <li>
-                <Link to="/" onClick={() => setMobileMenuOpen(false)}>
-                  INICIO
-                </Link>
-              </li>
-              <li>
-                <Link to="/products" onClick={() => setMobileMenuOpen(false)}>
-                  DROP 01
-                </Link>
-              </li>
-              <li>
-                <Link to="/products" onClick={() => setMobileMenuOpen(false)}>
-                  COLECCIÓN COMPLETA
-                </Link>
-              </li>
-              <li>
-                <a href="#manifesto" onClick={handlePhilosopyClick}>
-                  FILOSOFÍA
-                </a>
-              </li>
-            </ul>
+            <div className="mobile-drawer-nav">
+              <span className="editorial-label mobile-drawer-section-label">COLECCIONES</span>
+              <ul className="mobile-links-list">
+                <li>
+                  <Link
+                    to="/products?gender=men"
+                    className={isMenActive ? 'active' : ''}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    MEN
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/products?gender=women"
+                    className={isWomenActive ? 'active' : ''}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    WOMEN
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/products"
+                    className={isCollectionsActive ? 'active' : ''}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    COLLECTIONS
+                  </Link>
+                </li>
+                <li>
+                  <a href="/#manifesto" onClick={handlePhilosophyClick}>
+                    NOIR // MANIFIESTO
+                  </a>
+                </li>
+              </ul>
+
+              <div className="mobile-drawer-divider" />
+
+              <span className="editorial-label mobile-drawer-section-label">ACCESOS DIRECTOS</span>
+              <ul className="mobile-secondary-links">
+                <li>
+                  <Link to="/" onClick={() => setMobileMenuOpen(false)}>
+                    Inicio
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/checkout" onClick={() => setMobileMenuOpen(false)}>
+                    Carrito de Compras ({cartItemCount})
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
             <div className="mobile-drawer-footer">
               {user ? (
                 <>
-                  <p className="mobile-user-status">Conectado como <strong>{user.name}</strong></p>
-                  <Link to="/orders" className="noir-btn noir-btn-secondary" style={{ width: '100%', marginBottom: '10px' }} onClick={() => setMobileMenuOpen(false)}>
+                  <p className="mobile-user-status">
+                    Conectado como <strong>{user.name}</strong>
+                  </p>
+                  <Link
+                    to="/orders"
+                    className="noir-btn noir-btn-secondary"
+                    style={{ width: '100%', marginBottom: '10px' }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     Mis Compras
                   </Link>
-                  <button type="button" className="btn-text" style={{ width: '100%', textAlign: 'center' }} onClick={() => { setMobileMenuOpen(false); onLogout(); }}>
+                  <button
+                    type="button"
+                    className="btn-text"
+                    style={{ width: '100%', textAlign: 'center' }}
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onLogout();
+                    }}
+                  >
                     Cerrar Sesión
                   </button>
                 </>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <Link to="/login" className="noir-btn noir-btn-secondary" style={{ width: '100%' }} onClick={() => setMobileMenuOpen(false)}>
+                  <Link
+                    to="/login"
+                    className="noir-btn noir-btn-secondary"
+                    style={{ width: '100%' }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     INICIAR SESIÓN
                   </Link>
-                  <Link to="/register" className="noir-btn noir-btn-accent" style={{ width: '100%' }} onClick={() => setMobileMenuOpen(false)}>
+                  <Link
+                    to="/register"
+                    className="noir-btn noir-btn-accent"
+                    style={{ width: '100%' }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     CREAR CUENTA
                   </Link>
                 </div>

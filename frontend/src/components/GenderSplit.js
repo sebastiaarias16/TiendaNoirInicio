@@ -12,7 +12,7 @@ const panels = [
     descriptor: 'PERFORMANCE / STRUCTURE / STRENGTH',
     image: `${API_URL}/uploads/IMGHOMBRE.jpg`,
     fallback: '/Img/promocion1.jpg',
-    link: '/products',
+    link: '/products?gender=men',
     cta: 'EXPLORAR HOMBRE',
   },
   {
@@ -21,7 +21,7 @@ const panels = [
     descriptor: 'PERFORMANCE / FORM / EVOLUTION',
     image: `${API_URL}/uploads/IMGMUJER.jpg`,
     fallback: '/Img/promo2.jpg',
-    link: '/products',
+    link: '/products?gender=women',
     cta: 'EXPLORAR MUJER',
   },
 ];

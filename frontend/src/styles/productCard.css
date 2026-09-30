@@ -101,6 +101,18 @@
   overflow: hidden;
 }
 
+.product-card-title-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.product-card-title-link:hover,
+.product-card-title-link:focus-visible {
+  color: var(--noir-accent-champagne);
+  outline: none;
+}
+
 .product-card-description {
   font-size: 0.82rem;
   color: var(--noir-text-secondary);

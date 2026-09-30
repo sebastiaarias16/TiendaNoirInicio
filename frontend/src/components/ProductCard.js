@@ -1,35 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { formatCOP, getImageSrc } from '../utils/productUtils';
 import '../styles/productCard.css';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
-
-const formatCOP = (price) => {
-  if (typeof price !== 'number') {
-    price = Number(price) || 0;
-  }
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(price);
-};
-
-const getImageSrc = (product) => {
-  if (!product) return '/Img/foto.png';
-  const imgRef = Array.isArray(product.imagen)
-    ? product.imagen[0]
-    : product.imagen || (Array.isArray(product.imagenes) ? product.imagenes[0] : product.imagenes);
-
-  if (!imgRef) return '/Img/foto.png';
-  if (imgRef.startsWith('http://') || imgRef.startsWith('https://')) return imgRef;
-  if (imgRef.startsWith('/')) return imgRef;
-  return `${API_URL}/uploads/${imgRef}`;
-};
 
 const ProductCard = ({ product, addToCart }) => {
   const [added, setAdded] = useState(false);
   const imageSrc = getImageSrc(product);
+
+  // Prepare destination link for future Product Detail route (Phase 4)
+  const productDetailUrl = product?._id ? `/products?product=${product._id}` : '/products';
 
   const handleAdd = (e) => {
     e.preventDefault();
@@ -49,8 +28,12 @@ const ProductCard = ({ product, addToCart }) => {
   };
 
   return (
-    <article className="product-card">
-      <Link to="/products" className="product-card-media" aria-label={`Ver ${product.nombre}`}>
+    <article className="product-card" data-product-id={product?._id}>
+      <Link
+        to={productDetailUrl}
+        className="product-card-media"
+        aria-label={`Ver detalles de ${product.nombre}`}
+      >
         {product.featured && (
           <span className="product-card-badge">DROP 01</span>
         )}
@@ -71,7 +54,11 @@ const ProductCard = ({ product, addToCart }) => {
       <div className="product-card-details">
         <div>
           <span className="product-card-category">{product.categoria || 'NOIR APPAREL'}</span>
-          <h3 className="product-card-title">{product.nombre}</h3>
+          <h3 className="product-card-title">
+            <Link to={productDetailUrl} className="product-card-title-link">
+              {product.nombre}
+            </Link>
+          </h3>
           {product.descripcion && (
             <p className="product-card-description">{product.descripcion}</p>
           )}
