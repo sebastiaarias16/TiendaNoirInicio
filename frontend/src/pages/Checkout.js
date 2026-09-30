@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CartContext } from '../CartContext';
-import { createOrder } from '../api/api';
+import { createOrder, createWompiPayment, submitBrebProof } from '../api/api';
 import { getUser } from '../api/auth';
 import Footer from '../components/Footer';
 import { formatCOP, getImageSrc } from '../utils/productUtils';
@@ -16,13 +16,22 @@ import {
   FiAlertTriangle,
   FiMessageSquare,
   FiFileText,
+  FiCreditCard,
+  FiSmartphone,
+  FiRepeat,
+  FiCopy,
+  FiCheck,
+  FiArrowRight,
 } from 'react-icons/fi';
 import '../styles/checkout.css';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 const WHATSAPP_PHONE = '573124252861';
+const NOIR_BREB_LLAVE_EMAIL = 'contacto@tiendanoir.com';
+const NOIR_BREB_LLAVE_PHONE = '3124252861';
 
 const Checkout = () => {
+  const navigate = useNavigate();
   const {
     cartItems,
     clearCart,
@@ -44,15 +53,31 @@ const Checkout = () => {
     neighborhood: '',
     notes: '',
     city: 'Bogotá',
-    paymentMethod: 'contra_entrega',
+    paymentMethod: 'CARD', // CARD | NEQUI | BREB | CASH_ON_DELIVERY
   });
 
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState('');
   const [createdOrder, setCreatedOrder] = useState(null);
+  const [brebOrder, setBrebOrder] = useState(null);
+  const [brebReferenceInput, setBrebReferenceInput] = useState('');
+  const [brebSubmitting, setBrebSubmitting] = useState(false);
+  const [copiedKey, setCopiedKey] = useState('');
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [invoiceMessage, setInvoiceMessage] = useState('');
+
+  // Dynamically load official Wompi checkout script
+  useEffect(() => {
+    const scriptId = 'wompi-checkout-widget-script';
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://checkout.wompi.co/widget.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   // Load user data upon mount
   useEffect(() => {
@@ -90,6 +115,10 @@ const Checkout = () => {
     }
   };
 
+  const handlePaymentMethodSelect = (method) => {
+    setFormData((prev) => ({ ...prev, paymentMethod: method }));
+  };
+
   // Client-side form validation before server submission
   const validateForm = () => {
     const errors = {};
@@ -112,18 +141,22 @@ const Checkout = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // Generate WhatsApp pre-filled text
+  // Generate WhatsApp pre-filled text for Cash on Delivery
   const buildWhatsAppUrl = (order) => {
-    const orderNum = order._id.slice(-6).toUpperCase();
-    let msg = `*NOIR APPAREL — PEDIDO %23${orderNum}*%0A%0A`;
+    const orderNum = order.orderNumber || order._id.slice(-6).toUpperCase();
+    const isApproved = order.paymentStatus === 'APPROVED';
+
+    let msg = `*NOIR APPAREL — PEDIDO %23${encodeURIComponent(orderNum)}*%0A%0A`;
     msg += `*Cliente:* ${encodeURIComponent(order.customerName || formData.name)}%0A`;
     msg += `*Teléfono:* ${encodeURIComponent(order.phone || formData.phone)}%0A`;
     msg += `*Dirección:* ${encodeURIComponent(order.shippingAddress || formData.address)} (Bogotá D.C.)%0A`;
     if (formData.neighborhood) {
       msg += `*Barrio:* ${encodeURIComponent(formData.neighborhood)}%0A`;
     }
-    msg += `%0A*PRENDAS SELECCIONADAS:*%0A`;
+    msg += `%0A*MÉTODO DE PAGO:* ${encodeURIComponent(order.paymentMethod)}%0A`;
+    msg += `*ESTADO DE PAGO:* ${isApproved ? 'APROBADO' : 'PENDIENTE (Contra Entrega / Coordinación)'}%0A`;
 
+    msg += `%0A*PRENDAS SELECCIONADAS:*%0A`;
     order.products.forEach((item) => {
       msg += `• *${encodeURIComponent(item.nombre)}*%0A`;
       msg += `  Talla: ${item.talla} | Color: ${encodeURIComponent(item.color)} | Cant: ${item.quantity}%0A`;
@@ -131,8 +164,7 @@ const Checkout = () => {
     });
 
     msg += `%0A*TOTAL A PAGAR:* $${order.total} COP%0A`;
-    msg += `*Método:* Coordinación Contra Entrega / Transferencia%0A`;
-    msg += `%0A_Hola NOIR, acabo de registrar este pedido en la tienda y deseo coordinar la entrega._`;
+    msg += `%0A_Hola NOIR, acabo de registrar este pedido en la tienda y deseo coordinar la entrega en Bogotá._`;
 
     return `https://wa.me/${WHATSAPP_PHONE}?text=${msg}`;
   };
@@ -178,8 +210,76 @@ const Checkout = () => {
     };
 
     try {
+      // 1. Authoritative order creation in backend with atomic stock reservation
       const response = await createOrder(orderPayload);
       const savedOrder = response.order;
+
+      // -----------------------------------------------------------------
+      // A. WOMPI CARD OR NEQUI FLOW
+      // -----------------------------------------------------------------
+      if (formData.paymentMethod === 'CARD' || formData.paymentMethod === 'NEQUI') {
+        try {
+          const wompiData = await createWompiPayment({
+            orderId: savedOrder._id,
+            userId: user._id,
+          });
+
+          clearCart();
+
+          // Try official programmatic WidgetCheckout first
+          if (typeof window.WidgetCheckout === 'function' && wompiData.publicKey) {
+            const checkout = new window.WidgetCheckout({
+              currency: wompiData.currency,
+              amountInCents: wompiData.amountInCents,
+              reference: wompiData.reference,
+              publicKey: wompiData.publicKey,
+              signature: { integrity: wompiData.signature },
+              redirectUrl: wompiData.redirectUrl,
+              customerData: {
+                email: formData.email,
+                fullName: formData.name,
+                phoneNumber: {
+                  prefix: '+57',
+                  number: formData.phone.replace(/\D/g, '').slice(-10),
+                },
+              },
+            });
+
+            checkout.open((result) => {
+              navigate(
+                `/payment/status?reference=${encodeURIComponent(wompiData.reference)}&orderId=${savedOrder._id}`
+              );
+            });
+          } else if (wompiData.webCheckoutUrl) {
+            // Direct hosted fallback
+            window.location.href = wompiData.webCheckoutUrl;
+          } else {
+            navigate(
+              `/payment/status?reference=${encodeURIComponent(wompiData.reference)}&orderId=${savedOrder._id}`
+            );
+          }
+        } catch (wompiErr) {
+          console.error('Error iniciando Wompi:', wompiErr);
+          setServerError(
+            wompiErr.response?.data?.error ||
+              'No fue posible iniciar la pasarela de pagos. Por favor intenta nuevamente.'
+          );
+        }
+        return;
+      }
+
+      // -----------------------------------------------------------------
+      // B. BRE-B / LLAVE INTEROPERABLE FLOW
+      // -----------------------------------------------------------------
+      if (formData.paymentMethod === 'BREB') {
+        clearCart();
+        setBrebOrder(savedOrder);
+        return;
+      }
+
+      // -----------------------------------------------------------------
+      // C. CASH ON DELIVERY FLOW (Bogotá exclusive)
+      // -----------------------------------------------------------------
       setCreatedOrder(savedOrder);
       clearCart();
     } catch (err) {
@@ -191,6 +291,33 @@ const Checkout = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Submit proof for Bre-B
+  const handleConfirmBrebPayment = async (e) => {
+    e.preventDefault();
+    if (!brebOrder) return;
+
+    setBrebSubmitting(true);
+    try {
+      await submitBrebProof({
+        orderId: brebOrder._id,
+        brebReference: brebReferenceInput,
+        brebProof: 'Transferencia realizada mediante Llave Bre-B oficial',
+      });
+      navigate(`/payment/pending?orderId=${brebOrder._id}&method=BREB`);
+    } catch (err) {
+      console.error('Error registrando comprobante Bre-B:', err);
+      navigate(`/payment/pending?orderId=${brebOrder._id}&method=BREB`);
+    } finally {
+      setBrebSubmitting(false);
+    }
+  };
+
+  const copyToClipboard = (text, type) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(type);
+    setTimeout(() => setCopiedKey(''), 2500);
   };
 
   // Generate / Download Invoice
@@ -247,10 +374,122 @@ const Checkout = () => {
   }
 
   // ----------------------------------------------------
-  // ORDER SUCCESS STATE
+  // BRE-B ASSISTED MODAL / SCREEN
+  // ----------------------------------------------------
+  if (brebOrder) {
+    const orderNum = brebOrder.orderNumber || brebOrder._id.slice(-6).toUpperCase();
+    const waBrebMsg = encodeURIComponent(
+      `*NOIR APPAREL — COMPROBANTE BRE-B %23${orderNum}*%0A%0A` +
+        `*Cliente:* ${formData.name}%0A` +
+        `*Total:* $${brebOrder.total} COP%0A` +
+        `*Referencia transferencia:* ${brebReferenceInput || 'Adjunto soporte'}%0A%0A` +
+        `_Hola NOIR, acabo de realizar la transferencia vía Llave Bre-B para mi orden ${orderNum}._`
+    );
+    const waUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${waBrebMsg}`;
+
+    return (
+      <>
+        <main className="checkout-page-wrapper">
+          <div className="container-editorial checkout-breb-modal">
+            <FiRepeat size={48} className="breb-icon" aria-hidden="true" />
+            <span className="editorial-label">SISTEMA INTEROPERABLE BRE-B / LLAVE</span>
+            <h1 className="success-title">TRANSFERENCIA INMEDIATA</h1>
+            <p className="success-desc">
+              Orden <strong>{orderNum}</strong> registrada con stock reservado. Realiza la transferencia desde la app de tu banco o billetera favorita (Bancolombia, Nequi, Davivienda, Nu, etc.) utilizando cualquiera de nuestras Llaves oficiales registradas:
+            </p>
+
+            <div className="breb-instructions-card">
+              <div className="breb-key-row">
+                <div className="key-details">
+                  <span className="key-type">Llave Celular (Colombia)</span>
+                  <strong className="key-value">{NOIR_BREB_LLAVE_PHONE}</strong>
+                </div>
+                <button
+                  type="button"
+                  className="noir-btn noir-btn-secondary key-copy-btn"
+                  onClick={() => copyToClipboard(NOIR_BREB_LLAVE_PHONE, 'phone')}
+                >
+                  {copiedKey === 'phone' ? <FiCheck size={16} /> : <FiCopy size={16} />}
+                  <span>{copiedKey === 'phone' ? 'Copiado' : 'Copiar'}</span>
+                </button>
+              </div>
+
+              <div className="breb-key-row" style={{ marginTop: '12px' }}>
+                <div className="key-details">
+                  <span className="key-type">Llave Correo Electrónico</span>
+                  <strong className="key-value">{NOIR_BREB_LLAVE_EMAIL}</strong>
+                </div>
+                <button
+                  type="button"
+                  className="noir-btn noir-btn-secondary key-copy-btn"
+                  onClick={() => copyToClipboard(NOIR_BREB_LLAVE_EMAIL, 'email')}
+                >
+                  {copiedKey === 'email' ? <FiCheck size={16} /> : <FiCopy size={16} />}
+                  <span>{copiedKey === 'email' ? 'Copiado' : 'Copiar'}</span>
+                </button>
+              </div>
+
+              <div className="breb-amount-box">
+                <span>Total Exacto a Transferir:</span>
+                <strong className="breb-total">{formatCOP(brebOrder.total)} COP</strong>
+              </div>
+            </div>
+
+            <form onSubmit={handleConfirmBrebPayment} className="breb-confirmation-form">
+              <div className="form-field full-width">
+                <label htmlFor="breb-ref" className="field-label">
+                  Número de Aprobación / Comprobante (Opcional)
+                </label>
+                <input
+                  id="breb-ref"
+                  type="text"
+                  className="noir-input"
+                  placeholder="Ej: 84920492 ó últimos dígitos"
+                  value={brebReferenceInput}
+                  onChange={(e) => setBrebReferenceInput(e.target.value)}
+                />
+              </div>
+
+              <div className="breb-actions">
+                <button
+                  type="submit"
+                  className="noir-btn noir-btn-primary breb-submit-btn"
+                  disabled={brebSubmitting}
+                >
+                  {brebSubmitting ? (
+                    'REGISTRANDO...'
+                  ) : (
+                    <>
+                      <span>YA REALICÉ LA TRANSFERENCIA</span>
+                      <FiArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="noir-btn noir-btn-secondary breb-wa-link"
+                >
+                  <FiMessageSquare size={16} />
+                  <span>Enviar Comprobante por WhatsApp</span>
+                </a>
+              </div>
+            </form>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // ----------------------------------------------------
+  // CASH ON DELIVERY SUCCESS STATE
   // ----------------------------------------------------
   if (createdOrder) {
     const waUrl = buildWhatsAppUrl(createdOrder);
+    const orderNum = createdOrder.orderNumber || createdOrder._id.slice(-6).toUpperCase();
 
     return (
       <>
@@ -258,12 +497,16 @@ const Checkout = () => {
           <div className="container-editorial checkout-success-screen">
             <FiCheckCircle size={56} className="success-icon" aria-hidden="true" />
             <span className="editorial-label">ORDEN CONFIRMADA EN SISTEMA</span>
-            <h1 className="success-title">PEDIDO #{createdOrder._id.slice(-6).toUpperCase()} REGISTRADO</h1>
+            <h1 className="success-title">PEDIDO #{orderNum} REGISTRADO</h1>
             <p className="success-desc">
-              Tu orden ha sido guardada en nuestra base de datos con stock reservado. Para coordinar la entrega inmediata en Bogotá D.C. y acordar el método de pago, continúa a nuestro canal oficial de WhatsApp.
+              Tu orden ha sido guardada en nuestra base de datos con stock reservado bajo la modalidad <strong>Pago Contra Entrega</strong> en Bogotá D.C. Continúa a nuestro canal oficial de WhatsApp para coordinar el horario exacto de entrega.
             </p>
 
             <div className="success-order-summary">
+              <div className="summary-row">
+                <span>Número de Orden:</span>
+                <strong>{orderNum}</strong>
+              </div>
               <div className="summary-row">
                 <span>Cliente:</span>
                 <strong>{createdOrder.customerName}</strong>
@@ -271,6 +514,10 @@ const Checkout = () => {
               <div className="summary-row">
                 <span>Dirección de Entrega:</span>
                 <strong>{createdOrder.shippingAddress} (Bogotá)</strong>
+              </div>
+              <div className="summary-row">
+                <span>Método:</span>
+                <strong>Contra Entrega (Efectivo / Transferencia en sitio)</strong>
               </div>
               <div className="summary-row">
                 <span>Total a Pagar:</span>
@@ -305,9 +552,7 @@ const Checkout = () => {
                 </Link>
               </div>
 
-              {invoiceMessage && (
-                <p className="invoice-status-note">{invoiceMessage}</p>
-              )}
+              {invoiceMessage && <p className="invoice-status-note">{invoiceMessage}</p>}
             </div>
           </div>
         </main>
@@ -361,7 +606,7 @@ const Checkout = () => {
 
           <div className="checkout-grid-layout">
             {/* ====================================================
-                LEFT COLUMN: CUSTOMER & DELIVERY INFORMATION
+                LEFT COLUMN: CUSTOMER & DELIVERY & PAYMENT
                 ==================================================== */}
             <section
               className="checkout-form-section"
@@ -495,34 +740,101 @@ const Checkout = () => {
                   </div>
                 </div>
 
+                {/* ====================================================
+                    3. MULTI-GATEWAY PAYMENT METHODS (PHASE 6)
+                    ==================================================== */}
                 <div className="form-card" style={{ marginTop: 'var(--space-lg)' }}>
-                  <h2 className="form-section-title">3. MÉTODO DE PAGO Y COORDINACIÓN</h2>
+                  <h2 className="form-section-title">3. MÉTODO DE PAGO SEGURO</h2>
                   <div className="payment-options-list">
-                    <label className="payment-radio-option">
+                    {/* Method 1: CARD (Wompi) */}
+                    <label
+                      className={`payment-radio-option ${
+                        formData.paymentMethod === 'CARD' ? 'active-method' : ''
+                      }`}
+                      onClick={() => handlePaymentMethodSelect('CARD')}
+                    >
                       <input
                         type="radio"
                         name="paymentMethod"
-                        value="contra_entrega"
-                        checked={formData.paymentMethod === 'contra_entrega'}
+                        value="CARD"
+                        checked={formData.paymentMethod === 'CARD'}
                         onChange={handleInputChange}
                       />
+                      <div className="method-icon-wrap">
+                        <FiCreditCard size={20} className="method-icon" />
+                      </div>
                       <div className="radio-content">
-                        <strong>Pago Contra Entrega en Bogotá (Efectivo o Transferencia)</strong>
-                        <span>Coordinas y pagas al recibir tu pedido en la dirección indicada.</span>
+                        <strong>Tarjeta de Crédito / Débito (Wompi)</strong>
+                        <span>Visa, Mastercard, American Express procesadas de forma cifrada mediante Wompi (Bancolombia).</span>
                       </div>
                     </label>
 
-                    <label className="payment-radio-option">
+                    {/* Method 2: NEQUI (Wompi) */}
+                    <label
+                      className={`payment-radio-option ${
+                        formData.paymentMethod === 'NEQUI' ? 'active-method' : ''
+                      }`}
+                      onClick={() => handlePaymentMethodSelect('NEQUI')}
+                    >
                       <input
                         type="radio"
                         name="paymentMethod"
-                        value="nequi"
-                        checked={formData.paymentMethod === 'nequi'}
+                        value="NEQUI"
+                        checked={formData.paymentMethod === 'NEQUI'}
                         onChange={handleInputChange}
                       />
+                      <div className="method-icon-wrap">
+                        <FiSmartphone size={20} className="method-icon" />
+                      </div>
                       <div className="radio-content">
-                        <strong>Transferencia Inmediata (Nequi / Daviplata / Bancolombia)</strong>
-                        <span>Confirmación directa mediante comprobante oficial por WhatsApp.</span>
+                        <strong>Nequi (Pasarela Oficial Wompi)</strong>
+                        <span>Débito seguro desde tu cuenta Nequi con confirmación biométrica en tu app.</span>
+                      </div>
+                    </label>
+
+                    {/* Method 3: BRE-B / LLAVE */}
+                    <label
+                      className={`payment-radio-option ${
+                        formData.paymentMethod === 'BREB' ? 'active-method' : ''
+                      }`}
+                      onClick={() => handlePaymentMethodSelect('BREB')}
+                    >
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="BREB"
+                        checked={formData.paymentMethod === 'BREB'}
+                        onChange={handleInputChange}
+                      />
+                      <div className="method-icon-wrap">
+                        <FiRepeat size={20} className="method-icon" />
+                      </div>
+                      <div className="radio-content">
+                        <strong>Bre-B / Llave (Interoperable Colombia)</strong>
+                        <span>Paga al instante desde cualquier banco o billetera colombiana mediante Llave Celular o Correo.</span>
+                      </div>
+                    </label>
+
+                    {/* Method 4: CASH ON DELIVERY */}
+                    <label
+                      className={`payment-radio-option ${
+                        formData.paymentMethod === 'CASH_ON_DELIVERY' ? 'active-method' : ''
+                      }`}
+                      onClick={() => handlePaymentMethodSelect('CASH_ON_DELIVERY')}
+                    >
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="CASH_ON_DELIVERY"
+                        checked={formData.paymentMethod === 'CASH_ON_DELIVERY'}
+                        onChange={handleInputChange}
+                      />
+                      <div className="method-icon-wrap">
+                        <FiTruck size={20} className="method-icon" />
+                      </div>
+                      <div className="radio-content">
+                        <strong>Pago Contra Entrega en Bogotá D.C.</strong>
+                        <span>Pagas en efectivo o transferencia bancaria al momento de recibir tus prendas en Bogotá.</span>
                       </div>
                     </label>
                   </div>
@@ -623,7 +935,17 @@ const Checkout = () => {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    'REGISTRANDO PEDIDO...'
+                    'PROCESANDO...'
+                  ) : formData.paymentMethod === 'CARD' || formData.paymentMethod === 'NEQUI' ? (
+                    <>
+                      <span>CONTINUAR AL PAGO SEGURO</span>
+                      <FiArrowRight size={17} style={{ marginLeft: '8px' }} />
+                    </>
+                  ) : formData.paymentMethod === 'BREB' ? (
+                    <>
+                      <span>CONTINUAR CON BRE-B</span>
+                      <FiRepeat size={17} style={{ marginLeft: '8px' }} />
+                    </>
                   ) : (
                     <>
                       <span>CONFIRMAR ORDEN Y COORDINAR</span>
@@ -634,7 +956,11 @@ const Checkout = () => {
 
                 <div className="checkout-security-guarantee">
                   <FiShield size={16} className="guarantee-icon" aria-hidden="true" />
-                  <span>Tu orden se almacena de forma segura antes de coordinar en WhatsApp.</span>
+                  <span>
+                    {formData.paymentMethod === 'CARD' || formData.paymentMethod === 'NEQUI'
+                      ? 'Transacción cifrada y protegida por Wompi y Bancolombia.'
+                      : 'Tu orden se almacena de forma autoritativa en el servidor.'}
+                  </span>
                 </div>
               </div>
             </aside>

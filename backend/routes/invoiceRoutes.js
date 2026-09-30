@@ -18,10 +18,14 @@ router.get('/generate-invoice/:orderId', async (req, res) => {
     // 🔄 Datos para la factura
     const orderData = {
       orderId: order._id,
+      orderNumber: order.orderNumber,
       customerName: order.customerName || user.name,
       customerEmail: order.customerEmail || user.email,
       customerAddress: order.shippingAddress || order.address || user.address || "No especificada",
       customerCity: order.city || "Bogotá",
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      paidAt: order.paidAt,
       items: order.products.map(p => ({
         name: p.nombre || p.productId?.nombre || "Prenda NOIR",
         size: p.talla || "-",

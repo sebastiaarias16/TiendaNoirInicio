@@ -3,6 +3,8 @@ const router = express.Router();
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
+const Counter = require('../models/Counter');
+const { reserveStock } = require('../services/stockService');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
@@ -90,40 +92,61 @@ router.post('/', async (req, res) => {
     }
 
     // 4. Delivery validation
+    // 4. Delivery validation and payment method normalization
     const shippingCost = 0; // Envíos en Bogotá coordinados directamente
     const serverTotal = serverSubtotal + shippingCost;
 
-    const validPaymentMethods = ['online', 'contra_entrega', 'nequi'];
-    const validatedPaymentMethod = validPaymentMethods.includes(paymentMethod)
-      ? paymentMethod
-      : 'contra_entrega';
+    let normalizedMethod = 'CASH_ON_DELIVERY';
+    let provider = 'NONE';
+    let orderInitialStatus = 'CONFIRMED';
+    let paymentInitialStatus = 'PENDING';
+    let paymentExpiresAt = null;
 
-    // 5. Atomic conditional stock decrement with rollback on conflict
-    const decrementedProducts = [];
-    for (const item of authoritativeProducts) {
-      const updated = await Product.findOneAndUpdate(
-        { _id: item.productId, stock: { $gte: item.quantity } },
-        { $inc: { stock: -item.quantity } },
-        { new: true }
-      );
+    const rawMethod = (paymentMethod || '').toString().trim().toUpperCase();
 
-      if (!updated) {
-        // Rollback any successfully decremented items in this transaction
-        for (const rollback of decrementedProducts) {
-          await Product.findByIdAndUpdate(rollback.productId, {
-            $inc: { stock: rollback.quantity },
-          });
-        }
-        return res.status(409).json({
-          error: `El inventario de "${item.nombre}" cambió durante la transacción. Por favor revisa las unidades disponibles.`,
-        });
-      }
-
-      decrementedProducts.push(item);
+    if (rawMethod === 'CARD' || rawMethod === 'ONLINE') {
+      normalizedMethod = 'CARD';
+      provider = 'WOMPI';
+      orderInitialStatus = 'PENDING_PAYMENT';
+      paymentExpiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+    } else if (rawMethod === 'NEQUI') {
+      normalizedMethod = 'NEQUI';
+      provider = 'WOMPI';
+      orderInitialStatus = 'PENDING_PAYMENT';
+      paymentExpiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+    } else if (rawMethod === 'BREB' || rawMethod === 'BRE-B' || rawMethod === 'LLAVE') {
+      normalizedMethod = 'BREB';
+      provider = 'MANUAL_BREB';
+      orderInitialStatus = 'PENDING_PAYMENT';
+      paymentExpiresAt = new Date(Date.now() + 120 * 60 * 1000); // 2 hours
+    } else {
+      normalizedMethod = 'CASH_ON_DELIVERY';
+      provider = 'NONE';
+      orderInitialStatus = 'CONFIRMED';
+      paymentInitialStatus = 'PENDING';
+      paymentExpiresAt = null;
     }
 
-    // 6. Persist order with authoritative data
+    // 5. Atomic conditional stock decrement with rollback on conflict
+    const reservationResult = await reserveStock(authoritativeProducts);
+    if (!reservationResult.success) {
+      return res.status(409).json({
+        error: `El inventario de "${reservationResult.failedItem.nombre}" cambió durante la transacción o es insuficiente.`,
+      });
+    }
+
+    // 6. Generate human-readable, collision-free order number
+    const currentYear = new Date().getFullYear();
+    const counter = await Counter.findByIdAndUpdate(
+      { _id: `orderNumber_${currentYear}` },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    const orderNumber = `NOIR-${currentYear}-${String(counter.seq).padStart(6, '0')}`;
+
+    // 7. Persist order with authoritative data
     const newOrder = new Order({
+      orderNumber,
       userId: user._id,
       customerName: (customerName || user.name).trim(),
       customerEmail: (customerEmail || user.email).trim(),
@@ -134,13 +157,31 @@ router.post('/', async (req, res) => {
       subtotal: serverSubtotal,
       shippingCost,
       total: serverTotal,
-      status: 'pendiente',
-      paymentMethod: validatedPaymentMethod,
+      paymentMethod: normalizedMethod,
+      paymentProvider: provider,
+      paymentStatus: paymentInitialStatus,
+      orderStatus: orderInitialStatus,
+      paymentAmount: serverTotal,
+      paymentCurrency: 'COP',
+      paymentExpiresAt,
+      stockReserved: true,
+      stockReleased: false,
+      paymentAuditTrail: [
+        {
+          eventType: 'ORDER_CREATED',
+          provider,
+          reference: orderNumber,
+          oldStatus: null,
+          newStatus: paymentInitialStatus,
+          timestamp: new Date(),
+          details: { method: normalizedMethod, total: serverTotal },
+        },
+      ],
     });
 
     await newOrder.save();
 
-    console.log(`✅ Orden ${newOrder._id} creada exitosamente. Total autoritativo: $${serverTotal} COP`);
+    console.log(`✅ Orden ${orderNumber} (${newOrder._id}) creada exitosamente. Total autoritativo: $${serverTotal} COP`);
     return res.status(201).json({
       message: '✅ Orden creada exitosamente',
       order: newOrder,
@@ -171,11 +212,17 @@ router.get('/user/:userId', async (req, res) => {
 
     const formattedOrders = orders.map((order) => ({
       _id: order._id,
+      orderNumber: order.orderNumber || `NOIR-${order._id.slice(-6).toUpperCase()}`,
       createdAt: order.createdAt,
       total: order.total,
       subtotal: order.subtotal || order.total,
       status: order.status || order.estado || 'pendiente',
       paymentMethod: order.paymentMethod,
+      paymentProvider: order.paymentProvider,
+      paymentStatus: order.paymentStatus || 'PENDING',
+      orderStatus: order.orderStatus || 'PENDING_PAYMENT',
+      paymentReference: order.paymentReference,
+      paidAt: order.paidAt,
       city: order.city,
       items: order.products.map((p) => ({
         productId: p.productId?._id || p.productId,

@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Verify from './pages/Verify';
 import Orders from './pages/Orders';
+import PaymentStatus from './pages/PaymentStatus';
 import { getUser, logout } from './api/auth';
 import './App.css';
 
@@ -52,6 +53,10 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:token" element={<Verify />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/payment/status" element={<PaymentStatus />} />
+          <Route path="/payment/success" element={<PaymentStatus />} />
+          <Route path="/payment/pending" element={<PaymentStatus />} />
+          <Route path="/payment/failed" element={<PaymentStatus />} />
         </Routes>
       </div>
     </Router>

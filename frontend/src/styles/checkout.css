@@ -708,3 +708,151 @@
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   PHASE 6: PAYMENT GATEWAYS & BRE-B ASSISTED STYLES
+   ========================================================================== */
+
+.payment-radio-option.active-method {
+  border-color: var(--noir-accent-champagne, #C5A880) !important;
+  background-color: rgba(197, 168, 128, 0.06) !important;
+}
+
+.method-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: #1a1a1a;
+  border: 1px solid var(--noir-border-subtle, rgba(255, 255, 255, 0.08));
+  color: var(--noir-accent-champagne, #C5A880);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.payment-radio-option.active-method .method-icon-wrap,
+.payment-radio-option:has(input[type="radio"]:checked) .method-icon-wrap {
+  border-color: var(--noir-accent-champagne, #C5A880);
+  background-color: rgba(197, 168, 128, 0.12);
+}
+
+/* Bre-B Assisted Payment Card */
+.checkout-breb-modal {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background-color: var(--noir-bg-secondary, #121212);
+  border: 1px solid var(--noir-border-subtle, rgba(255, 255, 255, 0.08));
+  margin-top: 2rem;
+}
+
+.breb-icon {
+  color: var(--noir-accent-champagne, #C5A880);
+  margin-bottom: 1.25rem;
+}
+
+.breb-instructions-card {
+  width: 100%;
+  max-width: 520px;
+  margin: 1.5rem auto 2rem auto;
+  background-color: #161616;
+  border: 1px solid var(--noir-border-subtle, rgba(255, 255, 255, 0.08));
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.breb-key-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a1a1a;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 12px;
+}
+
+.key-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.key-type {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--noir-text-secondary, #A1A1A1);
+}
+
+.key-value {
+  font-family: var(--font-title, monospace);
+  font-size: 0.95rem;
+  color: var(--noir-text-primary, #F5F5F7);
+}
+
+.key-copy-btn {
+  padding: 8px 14px;
+  font-size: 0.72rem;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.breb-amount-box {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--noir-border-subtle, rgba(255, 255, 255, 0.08));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.breb-amount-box span {
+  font-size: 0.85rem;
+  color: var(--noir-text-secondary, #A1A1A1);
+}
+
+.breb-total {
+  font-family: var(--font-title, sans-serif);
+  font-size: 1.25rem;
+  color: var(--noir-accent-champagne, #C5A880);
+}
+
+.breb-confirmation-form {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.breb-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 1.5rem;
+}
+
+.breb-submit-btn {
+  width: 100%;
+  padding: 16px;
+  gap: 10px;
+}
+
+.breb-wa-link {
+  width: 100%;
+  padding: 14px;
+  gap: 8px;
+}
+
+/* Spinner Animation */
+.spinning {
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
