@@ -1,24 +1,26 @@
 
 .products-container {
-  background-color: #ffffff;
-  color: rgb(0, 0, 0);
+  background-color: var(--noir-bg-primary, #080808);
+  color: var(--noir-text-primary, #F5F5F7);
   margin: 0 auto;
   padding: 40px 20px;
-  padding-top: 110px;
+  padding-top: calc(var(--header-height, 72px) + var(--announcement-height, 36px) + 32px);
+  min-height: 100vh;
 }
 
 .products-title {
+  font-family: var(--font-display, 'Syne', sans-serif);
   font-size: 3rem;
   font-weight: 700;
-  color: #000000;
+  color: var(--noir-text-primary, #F5F5F7);
   text-align: left;
   padding-left: 40px;
-  padding-right: 40px; /* 🔧 Añadido para evitar que el texto choque con los bordes */
+  padding-right: 40px;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.08em;
   margin-bottom: 40px;
   animation: fadeIn 1.0s ease-in-out;
-  word-wrap: break-word; /* 🔧 Asegura que se divida si es muy largo */
+  word-wrap: break-word;
   overflow-wrap: break-word;
 }
 

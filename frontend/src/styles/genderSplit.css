@@ -1,0 +1,110 @@
+/* ==========================================================================
+   NOIR — GENDER SPLIT SECTION DESIGN SYSTEM
+   Two-panel editorial presentation (Men / Women).
+   ========================================================================== */
+
+.noir-gender-split {
+  width: 100%;
+  padding: var(--space-2xl) var(--space-lg);
+  background-color: var(--noir-bg-primary);
+}
+
+.gender-split-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+
+.gender-panel {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  min-height: 520px;
+  background-color: var(--noir-bg-secondary);
+  border: 1px solid var(--noir-border-subtle);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Background Media & Hover Zoom */
+.gender-panel-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.gender-panel-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gender-panel:hover .gender-panel-media img {
+  transform: scale(1.04);
+}
+
+.gender-panel-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 8, 8, 0.1) 0%,
+    rgba(8, 8, 8, 0.45) 50%,
+    rgba(8, 8, 8, 0.9) 100%
+  );
+  transition: opacity var(--transition-normal);
+}
+
+/* Editorial Copy */
+.gender-panel-content {
+  position: relative;
+  z-index: 2;
+  padding: var(--space-xl);
+  width: 100%;
+}
+
+.panel-tag {
+  color: var(--noir-accent-champagne);
+  margin-bottom: var(--space-xs);
+}
+
+.gender-panel-title {
+  font-family: var(--font-title);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--noir-text-primary);
+  margin-bottom: 4px;
+}
+
+.gender-panel-descriptor {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-widest);
+  color: var(--noir-text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+.panel-cta {
+  min-width: 160px;
+}
+
+/* Responsive */
+@media (max-width: 868px) {
+  .gender-split-container {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .gender-panel {
+    min-height: 440px;
+  }
+
+  .gender-panel-content {
+    padding: var(--space-lg);
+  }
+}

@@ -16,8 +16,10 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Checkout = () => {
   const [message, setMessage] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('online');
-  const [city, setCity] = useState('');
+  // eslint-disable-next-line no-unused-vars
+  const [paymentMethod, setPaymentMethod] = useState('online'); // reserved for MercadoPago integration
+  // eslint-disable-next-line no-unused-vars
+  const [city, setCity] = useState(''); // reserved for multi-city shipping expansion
   const [orderId, setOrderId] = useState(null);
   const [user, setUser] = useState(null);
 
@@ -155,7 +157,8 @@ const Checkout = () => {
     }
   };
 
-  const handlePayment = async () => {
+  // eslint-disable-next-line no-unused-vars
+  const handlePayment = async () => { // reserved for MercadoPago payment integration (Phase 5)
     if (!user) return alert('Debes iniciar sesión para comprar');
 
     try {

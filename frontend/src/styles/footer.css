@@ -1,46 +1,164 @@
-.footer {
-  background-color: #000;
-  color: #fff;
-  padding: 40px 20px;
-  border-top: 1px solid #1a1a1a;
+/* ==========================================================================
+   NOIR — FOOTER DESIGN SYSTEM
+   Editorial, multi-column, clean Colombian brand heritage.
+   ========================================================================== */
+
+.noir-footer {
+  background-color: #060606;
+  border-top: 1px solid var(--noir-border-subtle);
+  padding: clamp(60px, 8vw, 100px) var(--space-lg) var(--space-xl);
+  color: var(--noir-text-secondary);
 }
 
-.footer-content {
-  max-width: 900px;
-  margin: 0 auto;
-  text-align: center;
+.footer-top-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: clamp(32px, 5vw, 64px);
+  margin-bottom: var(--space-3xl);
 }
 
-.footer-copy {
-  font-size: 14px;
-  margin-bottom: 20px;
-  color: #aaa;
+/* Brand Column */
+.footer-brand-title {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--noir-text-primary);
+  margin: 0 0 4px;
 }
 
-.footer-copy span {
-  color: #fff;
-  font-weight: 600;
+.footer-brand-tagline {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--noir-accent-champagne);
+  margin-bottom: var(--space-md);
 }
 
-.social {
+.footer-brand-bio {
+  font-size: 0.85rem;
+  color: var(--noir-text-muted);
+  line-height: 1.6;
+  max-width: 360px;
+  margin-bottom: var(--space-lg);
+}
+
+.footer-social-links {
   display: flex;
-  justify-content: center;
-  gap: 40px;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.social-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--noir-text-secondary);
+  padding: 8px 14px;
+  border: 1px solid var(--noir-border-subtle);
+  transition: all var(--transition-fast);
+}
+
+.social-btn:hover {
+  color: var(--noir-text-primary);
+  border-color: var(--noir-border-medium);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Navigation Columns */
+.footer-col-heading {
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--noir-text-primary);
+  margin-bottom: var(--space-lg);
+}
+
+.footer-nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: 0;
+  margin: 0;
+}
+
+.footer-nav-list a {
+  font-size: 0.85rem;
+  color: var(--noir-text-secondary);
+  transition: color var(--transition-fast);
+  display: inline-block;
+}
+
+.footer-nav-list a:hover {
+  color: var(--noir-text-primary);
+}
+
+.footer-static-info {
+  font-size: 0.85rem;
+  color: var(--noir-text-muted);
+}
+
+/* Bottom Bar */
+.footer-bottom-bar {
+  border-top: 1px solid var(--noir-border-subtle);
+  padding-top: var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
+  gap: var(--space-md);
 }
 
-.social a {
-  color: #fff;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 500;
-  transition: color 0.3s ease;
+.footer-copyright {
+  font-size: 0.76rem;
+  color: var(--noir-text-muted);
+  letter-spacing: var(--tracking-wide);
+  margin: 0;
 }
 
-.social a:hover {
-  color: #d4af37; /* Dorado elegante */
+.footer-legal-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--noir-text-muted);
 }
 
-.social i {
-  margin-right: 8px;
+.legal-divider {
+  color: var(--noir-border-medium);
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .footer-top-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+  }
+
+  .footer-brand-col {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .footer-top-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  .footer-bottom-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

@@ -1,135 +1,141 @@
-body {
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
+/* Register page — body override removed; global dark bg from index.css */
+
+@keyframes fadeInSlide {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .register-wrapper {
-     height: 100vh;
+  height: 100vh;
   width: 100%;
-  background-size: cover;
-  background-position: center;
+  background-color: var(--noir-bg-primary, #080808);
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   animation: fadeIn 1s ease forwards;
-  }
-  
-  .register-wrapper::before {
-    content: '';
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(6px);
-  z-index: 1;
-    
-  }
+  padding-top: calc(var(--header-height, 72px) + var(--announcement-height, 36px));
+}
+
+.register-wrapper::before {
+  display: none;
+}
 
 .register-container {
-    z-index: 2;
+  z-index: 2;
   width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  animation: fadeInSlide 1s ease forwards;
+  max-width: 420px;
+  padding: 2.5rem 2rem;
+  background: var(--noir-surface-secondary, #121212);
+  border: 1px solid rgba(197, 168, 128, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  animation: fadeInSlide 0.7s ease forwards;
   box-sizing: border-box;
 }
 
 .register-form h2 {
-  font-size: 2rem;
+  font-family: var(--font-display, 'Syne', sans-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
   text-align: center;
-  margin-bottom: 30px;
-  letter-spacing: 1px;
-  color: #000;
+  margin-bottom: 2rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--noir-text-primary, #F5F5F7);
 }
 
 .register-form input {
   width: 100%;
-  padding: 12px 15px;
+  padding: 12px 16px;
   margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
+  background: var(--noir-bg-primary, #080808);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  color: var(--noir-text-primary, #F5F5F7);
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
+.register-form input:focus {
+  outline: none;
+  border-color: var(--noir-accent-champagne, #C5A880);
+}
+
+.register-form input::placeholder {
+  color: var(--noir-text-muted, #737373);
+}
 
 .register-form button {
   width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  background-color: #000;
-  color: white;
+  padding: 13px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  background-color: var(--noir-text-primary, #F5F5F7);
+  color: var(--noir-bg-primary, #080808);
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 2px;
+  font-family: var(--font-display, 'Syne', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .register-form button:hover {
-  background-color: #FFD700;
-  color: black;
+  background-color: var(--noir-accent-champagne, #C5A880);
+  color: var(--noir-bg-primary, #080808);
 }
 
 .login-link {
-    text-align: center;
-    margin-top: 1rem;
-    font-size: 0.9rem;
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--noir-text-muted, #737373);
 }
 
 .login-link a {
-    color: #000;
-    text-decoration: none;
+  color: var(--noir-accent-champagne, #C5A880);
+  text-decoration: none;
 }
 
 .login-link a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
-/* 🔁 RESPONSIVE DESIGN */
+/* Responsive */
 @media (max-width: 768px) {
-    .register-form {
-        padding: 1.5rem;
-        border-radius: 10px;
-    }
-
-    .register-form h2 {
-        font-size: 1.5rem;
-    }
-
-    .register-form input,
-    .register-form button {
-        font-size: 0.95rem;
-        padding: 10px 12px;
-    }
+  .register-form {
+    padding: 1.5rem;
+  }
+  .register-form h2 {
+    font-size: 1.5rem;
+  }
+  .register-form input,
+  .register-form button {
+    font-size: 0.95rem;
+    padding: 10px 12px;
+  }
 }
 
 @media (max-width: 480px) {
-    .register-wrapper {
-        align-items: flex-start;
-        padding-top: 2rem;
-    }
-
-    .register-form {
-        padding: 1rem;
-        border-radius: 8px;
-    }
-
-    .register-form h2 {
-        font-size: 1.3rem;
-    }
-
-    .register-form input,
-    .register-form button {
-        font-size: 0.9rem;
-        padding: 10px;
-    }
-
-    .login-link {
-        font-size: 0.85rem;
-    }
+  .register-wrapper {
+    align-items: flex-start;
+    padding-top: calc(var(--header-height, 72px) + var(--announcement-height, 36px) + 1rem);
+  }
+  .register-form h2 {
+    font-size: 1.3rem;
+  }
+  .login-link {
+    font-size: 0.85rem;
+  }
 }

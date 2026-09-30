@@ -1,23 +1,24 @@
 
 /* Fondo general */
 .main-content {
-  background-color: #ffffff;
+  background-color: var(--noir-bg-primary, #080808);
   min-height: 100vh;
   padding: 2rem 1rem;
   display: flex;
   justify-content: center;
-  padding-top: 110px;
+  padding-top: calc(var(--header-height, 72px) + var(--announcement-height, 36px) + 2rem);
 }
 
 /* Contenedor principal */
 .checkout-container {
   width: 100%;
   max-width: 800px;
-  background: #ffffff;
+  background: var(--noir-surface-secondary, #121212);
   padding: 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  margin-top: 100px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  margin-top: 0;
 }
 
 /* Título */

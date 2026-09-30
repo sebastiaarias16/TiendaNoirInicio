@@ -1,334 +1,347 @@
-/* Estilos Generales */
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #000;
-  padding: 25px 40px;
-  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+/* ==========================================================================
+   NOIR — NAVIGATION HEADER DESIGN SYSTEM
+   Editorial, restrained luxury, subtle sticky glassmorphism.
+   ========================================================================== */
+
+.noir-header {
   position: fixed;
-  /* fijar en la parte superior */
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
 }
 
-main,
-.main-content,
-.page-content {
-  padding-top: 90px;
+.noir-nav {
+  position: relative;
+  width: 100%;
+  background-color: rgba(8, 8, 8, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--noir-border-subtle);
+  transition: all var(--transition-normal);
 }
 
-nav h1 {
-  color: #ffffff;
-  margin: 0 60px;
+.noir-header.scrolled .noir-nav {
+  background-color: rgba(8, 8, 8, 0.96);
+  border-bottom-color: var(--noir-border-medium);
 }
 
-/* Enlaces del menú */
-nav ul {
+.nav-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  height: var(--header-height);
+  padding: 0 var(--space-lg);
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Brand Wordmark */
+.nav-brand .brand-link {
+  font-family: var(--font-title);
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--noir-text-primary);
+  text-transform: uppercase;
+  display: inline-block;
+  line-height: 1;
+}
+
+/* Desktop Links */
+.nav-links-desktop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
   list-style: none;
 }
 
-nav ul li {
-  margin: 0 15px;
-}
-
-nav ul li a {
-  font-size: 18px;
-  color: #ffffff;
-  text-decoration: none;
+.nav-item-link {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
   font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-nav ul li a:hover {
-  color: #FFD700;
-}
-
-/* Menú de usuario */
-.user-menu {
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--noir-text-secondary);
+  transition: color var(--transition-fast);
   position: relative;
-  display: inline-block;
-  cursor: pointer;
+  padding: 6px 0;
 }
 
-.user-icon {
-  font-size: 24px;
-  color: #fff;
-  transition: transform 0.3s ease;
+.nav-item-link:hover {
+  color: var(--noir-text-primary);
 }
 
-.user-icon:hover {
-  transform: rotate(360deg);
-  /* Efecto de rotación en el ícono */
-}
-
-.dropdown {
+.nav-item-link::after {
+  content: '';
   position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #000;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  min-width: 160px;
-  margin-top: 10px;
-  padding: 10px 0;
-  z-index: 10;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 1px;
+  background-color: var(--noir-accent-champagne);
+  transition: width var(--transition-normal);
 }
 
-.user-menu:hover .dropdown,
-.dropdown:hover {
-  opacity: 1;
-  visibility: visible;
+.nav-item-link:hover::after {
+  width: 100%;
 }
 
-.dropdown-item {
-  padding: 12px 20px;
-  color: #ffffff;
-  text-decoration: none;
-  display: block;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
-  border-bottom: 1px solid #333;
+/* Nav Actions (User & Cart) */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
 }
 
-.dropdown-item:hover {
-  background-color: #444;
-}
-
-.logout-btn {
+.nav-action-btn {
   background: none;
   border: none;
-  padding: 12px 20px;
-  color: #ffffff;
-  width: 100%;
-  text-align: left;
-  font-size: 16px;
-}
-
-.logout-btn:hover {
-  background-color: #444;
-  color: #FFD700;
+  color: var(--noir-text-primary);
+  padding: 8px;
   cursor: pointer;
-}
-
-/* Estilo de íconos */
-.user-icon i,
-.user-icon .material-icons {
-  font-size: 24px;
-  color: #fff;
-}
-
-.user-icon :hover {
-  font-size: 24px;
-  color: #FFD700;
-}
-
-.cart-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.cart-icon .material-icons {
-  font-size: 24px;
-  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.cart-icon :hover {
-  font-size: 24px;
-  color: #FFD700;
   position: relative;
+  transition: color var(--transition-fast), transform var(--transition-fast);
 }
 
-/* Contador del carrito */
-.cart-count {
+.nav-action-btn:hover {
+  color: var(--noir-accent-champagne);
+  transform: translateY(-1px);
+}
+
+.auth-links-desktop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.nav-auth-link {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--noir-text-secondary);
+  padding: 6px 12px;
+  border: 1px solid var(--noir-border-subtle);
+  transition: all var(--transition-fast);
+}
+
+.nav-auth-link:hover {
+  color: var(--noir-text-primary);
+  border-color: var(--noir-border-medium);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Cart Badge Indicator */
+.cart-badge-indicator {
   position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(50%, -50%); /* Centrado perfecto */
-  background-color: red;
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-  width: 18px;
-  height: 18px;
+  top: 2px;
+  right: 0px;
+  background-color: var(--noir-text-primary);
+  color: var(--noir-bg-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  z-index: 10;
+  line-height: 1;
 }
 
-/* Animación para el contador */
-.cart-badge {
-  animation: bubble 0.4s ease;
+.cart-btn.pulse .cart-badge-indicator {
+  animation: badgePop 0.3s ease-out;
 }
 
-.cart-icon.animate {
-  animation: shake 0.4s ease;
-  display: inline-block;
+@keyframes badgePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* User Dropdown */
+.user-dropdown-container {
   position: relative;
-  color: #ffffff;
-  /* blanco */
 }
 
-/* Botón hamburguesa */
-.hamburger {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-firstname {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--noir-text-secondary);
+}
+
+.noir-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background-color: var(--noir-bg-secondary);
+  border: 1px solid var(--noir-border-medium);
+  min-width: 200px;
+  padding: var(--space-xs) 0;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  animation: dropdownIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-header {
+  padding: var(--space-sm) var(--space-md);
+}
+
+.dropdown-user-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--noir-text-primary);
+  margin: 0;
+}
+
+.dropdown-user-email {
+  font-size: 0.72rem;
+  color: var(--noir-text-muted);
+  margin: 0;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: var(--noir-border-subtle);
+  margin: var(--space-xs) 0;
+}
+
+.dropdown-link {
+  display: block;
+  padding: 10px var(--space-md);
+  font-size: 0.8rem;
+  color: var(--noir-text-secondary);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  text-align: left;
+  width: 100%;
+  background: none;
+  border: none;
   cursor: pointer;
-  position: flex;
-  right: 40px;
-  top: 30px;
-  z-index: 20;
 }
 
-.hamburger span {
-  width: 25px;
-  height: 3px;
-  background-color: white;
-  border-radius: 2px;
+.dropdown-link:hover {
+  background-color: var(--noir-bg-tertiary);
+  color: var(--noir-text-primary);
 }
 
-@keyframes bubble {
-  0% {
-    transform: scale(1);
-  }
-  30% {
-    transform: scale(1.4);
-  }
-  60% {
-    transform: scale(0.9);
-  }
-  100% {
-    transform: scale(1);
-  }
+.dropdown-link.logout {
+  color: #e57373;
 }
-/* Estilos Responsive */
-@media (max-width: 768px) {
-  .hamburger {
+
+.dropdown-link.logout:hover {
+  color: #ff8a80;
+}
+
+/* Mobile Toggle */
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--noir-text-primary);
+  padding: 6px;
+  cursor: pointer;
+}
+
+/* Mobile Navigation Drawer */
+.mobile-nav-drawer {
+  display: none;
+  position: fixed;
+  top: calc(var(--header-height) + var(--announcement-height));
+  left: 0;
+  width: 100%;
+  height: calc(100vh - var(--header-height) - var(--announcement-height));
+  background-color: var(--noir-bg-primary);
+  border-top: 1px solid var(--noir-border-subtle);
+  z-index: 999;
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  overflow-y: auto;
+}
+
+.mobile-nav-drawer.open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-drawer-inner {
+  padding: var(--space-xl) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.mobile-links-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.mobile-links-list a {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--noir-text-primary);
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.mobile-drawer-footer {
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--noir-border-subtle);
+}
+
+.mobile-user-status {
+  font-size: 0.82rem;
+  color: var(--noir-text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+@media (max-width: 868px) {
+  .mobile-toggle {
     display: flex;
-  }
-
-  .nav-links {
-    display: none;
-    flex-direction: column;
-    background-color: #000;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-    padding: 20px;
-  }
-
-  .nav-links.open {
-    display: flex;
-  }
-
-  nav ul li {
-    margin: 10px 0;
-    text-align: center;
-  }
-
-  .user-menu {
-    align-self: center;
-  }
-
-  .dropdown {
-    position: static;
-    border: none;
-    padding: 0;
-    background: none;
-  }
-
-  .dropdown li {
-    background: #111;
-    border-radius: 5px;
-    margin: 5px 0;
-  }
-
-  .dropdown button {
-    color: rgb(255, 255, 255);
-    background: none;
-    padding: 10px;
-    width: 100%;
-  }
-
-  .cart-icon {
-    color: #FFD700;
-  }
-
-  .cart-icon.animate {
-    animation: shake 0.4s ease;
-  }
-
-  /* Ajustes específicos para los íconos en móviles */
-  .cart-badge {
-    position: absolute;
-    top: -5px;
-    right: -10px;
-    background-color: red;
-    color: white;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 50%;
-    font-size: 12px;
-  }
-
-  .navbar-cart {
-    display: flex;
-    justify-content: center;
     align-items: center;
-  }
-}
-
-@media (max-width: 480px) {
-  nav {
-    padding: 15px;
+    justify-content: center;
   }
 
-  nav h1 {
-    font-size: 1.2rem;
+  .nav-links-desktop,
+  .auth-links-desktop,
+  .user-firstname {
+    display: none;
   }
 
-  nav ul li a {
-    font-size: 0.95rem;
-  }
-}
-
-/* Animación de sacudida para el carrito */
-@keyframes shake {
-  0% {
-    transform: translateX(0);
+  .mobile-nav-drawer {
+    display: block;
   }
 
-  20% {
-    transform: translateX(-2px);
-  }
-
-  40% {
-    transform: translateX(2px);
-  }
-
-  60% {
-    transform: translateX(-2px);
-  }
-
-  80% {
-    transform: translateX(2px);
-  }
-
-  100% {
-    transform: translateX(0);
+  .nav-container {
+    padding: 0 var(--space-md);
   }
 }

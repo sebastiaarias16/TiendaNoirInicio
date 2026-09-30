@@ -1,26 +1,33 @@
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { getUser, logout } from './api/auth';
-import './styles/navbar.css';
-import '../src/App.css';
 import Verify from './pages/Verify';
 import Orders from './pages/Orders';
+import { getUser, logout } from './api/auth';
+import './App.css';
 
 const App = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user')) || null;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const syncUser = async () => {
       const loggedUser = await getUser();
-      setUser(loggedUser);
+      if (loggedUser) {
+        setUser(loggedUser);
+      }
     };
-    fetchUser();
+    syncUser();
   }, []);
 
   const handleLogout = () => {
@@ -28,26 +35,20 @@ const App = () => {
     setUser(null);
   };
 
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
-  
-
   return (
     <Router>
-      <Navbar user={user} onLogout={handleLogout} />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify/:token" element={<Verify />} />
-        <Route path="/orders" element={<Orders />} />
-      </Routes>
+      <div className="app-wrapper">
+        <Navbar user={user} onLogout={handleLogout} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/login" element={<Login setUser={setUser} />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify/:token" element={<Verify />} />
+          <Route path="/orders" element={<Orders />} />
+        </Routes>
+      </div>
     </Router>
   );
 };
