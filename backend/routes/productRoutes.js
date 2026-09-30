@@ -35,4 +35,21 @@ router.get('/featured', async (req, res) => {
   }
 });
 
+// 📌 Obtener producto por ID
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+    const producto = await Product.findById(id);
+    if (!producto) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+    res.json(producto);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener el producto' });
+  }
+});
+
 module.exports = router;

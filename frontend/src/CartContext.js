@@ -22,19 +22,20 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (product) => {
+  const addToCart = (product, quantityToAdd = 1) => {
+    const qty = typeof quantityToAdd === 'number' && quantityToAdd > 0 ? quantityToAdd : 1;
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item._id === product._id);
       if (existingItem) {
         // Aumenta la cantidad si ya existe
         return prevItems.map(item =>
           item._id === product._id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + qty }
             : item
         );
       } else {
-        // Agrega con cantidad inicial de 1
-        return [...prevItems, { ...product, quantity: 1 }];
+        // Agrega con cantidad inicial
+        return [...prevItems, { ...product, quantity: qty }];
       }
     });
   };

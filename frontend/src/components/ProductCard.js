@@ -7,8 +7,8 @@ const ProductCard = ({ product, addToCart }) => {
   const [added, setAdded] = useState(false);
   const imageSrc = getImageSrc(product);
 
-  // Prepare destination link for future Product Detail route (Phase 4)
-  const productDetailUrl = product?._id ? `/products?product=${product._id}` : '/products';
+  // Link directly to the Phase 4 Product Detail route
+  const productDetailUrl = product?._id ? `/products/${product._id}` : '/products';
 
   const handleAdd = (e) => {
     e.preventDefault();

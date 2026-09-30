@@ -1,0 +1,197 @@
+/* ==========================================================================
+   NOIR — SIZE GUIDE MODAL DESIGN SYSTEM
+   Editorial, minimal, dark surface with accessible focus management.
+   ========================================================================== */
+
+.size-guide-backdrop {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: var(--space-md);
+  box-sizing: border-box;
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.size-guide-modal {
+  background-color: var(--noir-surface-secondary, #121212);
+  border: 1px solid var(--noir-border-medium);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+  animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.size-guide-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-xl) var(--space-xl) var(--space-md);
+  border-bottom: 1px solid var(--noir-border-subtle);
+}
+
+.size-guide-title {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--noir-text-primary);
+  text-transform: uppercase;
+  margin: 4px 0 0 0;
+}
+
+.size-guide-close-btn {
+  background: none;
+  border: none;
+  color: var(--noir-text-secondary);
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  transition: color var(--transition-fast);
+}
+
+.size-guide-close-btn:hover {
+  color: var(--noir-text-primary);
+}
+
+.size-guide-close-btn:focus-visible {
+  outline: 2px solid var(--noir-accent-champagne);
+  outline-offset: 2px;
+}
+
+.size-guide-body {
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.size-guide-notice {
+  background-color: var(--noir-bg-primary);
+  border: 1px solid var(--noir-border-subtle);
+  padding: var(--space-md);
+}
+
+.notice-tag {
+  color: var(--noir-accent-champagne);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.notice-text {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--noir-text-secondary);
+  margin: 0;
+}
+
+/* Measurement Table */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.size-guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.size-guide-table th {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--noir-text-muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--noir-border-medium);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.size-guide-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--noir-border-subtle);
+  color: var(--noir-text-secondary);
+}
+
+.size-guide-table .size-cell {
+  font-family: var(--font-title);
+  font-weight: 700;
+  color: var(--noir-text-primary);
+  letter-spacing: var(--tracking-wide);
+}
+
+.size-guide-table .metric-cell {
+  font-style: italic;
+  color: var(--noir-text-muted);
+  font-size: 0.78rem;
+}
+
+/* Consultation Advice */
+.size-guide-advice {
+  background-color: var(--noir-bg-primary);
+  border: 1px solid var(--noir-border-subtle);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.advice-title {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  color: var(--noir-text-primary);
+  margin: 0;
+}
+
+.advice-text {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--noir-text-secondary);
+  margin: 0;
+}
+
+.size-guide-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+  font-size: 0.76rem;
+  text-decoration: none;
+}

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 
-// 📌 Obtener productos del carrito desde la API
+// 📌 Obtener productos del catálogo desde la API (solo disponibles)
 export const fetchCartItems = async () => {
   try {
     const response = await axios.get(`${API_URL}/api/products`);
@@ -10,6 +10,20 @@ export const fetchCartItems = async () => {
   } catch (error) {
     console.error('❌ Error al obtener productos:', error);
     return [];
+  }
+};
+
+// 📌 Obtener un producto por ID desde la API
+export const fetchProductById = async (id) => {
+  try {
+    const response = await axios.get(`${API_URL}/api/products/${id}`);
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return null;
+    }
+    console.error('❌ Error al obtener producto por ID:', error);
+    throw error;
   }
 };
 
