@@ -5,6 +5,7 @@ import {
   getPaymentStatusByReference,
   getPaymentStatusByTransactionId,
 } from '../api/api';
+import { useCart } from '../CartContext';
 import Footer from '../components/Footer';
 import { formatCOP } from '../utils/productUtils';
 import {
@@ -27,6 +28,7 @@ const isMongoId = (val) => typeof val === 'string' && /^[0-9a-fA-F]{24}$/.test(v
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { clearCart } = useCart();
 
   const referenceParam = searchParams.get('reference');
   const orderIdParam = searchParams.get('orderId');
@@ -43,21 +45,31 @@ const PaymentStatus = () => {
     try {
       let data = null;
 
-      // 1. ALWAYS prioritize reference param if provided
-      if (referenceParam) {
-        data = await getPaymentStatusByReference(referenceParam);
+      // 1. If Wompi transaction ID is provided in ?id= (and is not Mongo ObjectId)
+      // Query by transaction ID so backend authoritatively synchronizes with Wompi API
+      if (idParam && !isMongoId(idParam)) {
+        try {
+          data = await getPaymentStatusByTransactionId(idParam);
+        } catch (txErr) {
+          console.warn('Fallo consultando por transactionId, intentando por referencia:', txErr);
+          if (referenceParam) {
+            data = await getPaymentStatusByReference(referenceParam, idParam);
+          } else {
+            throw txErr;
+          }
+        }
       }
-      // 2. If orderId is provided and is a valid ObjectId
+      // 2. Lookup by reference
+      else if (referenceParam) {
+        data = await getPaymentStatusByReference(referenceParam, idParam);
+      }
+      // 3. If orderId is provided and is a valid ObjectId
       else if (orderIdParam && isMongoId(orderIdParam)) {
         data = await getPaymentStatus(orderIdParam);
       }
-      // 3. If ?id= is provided
-      else if (idParam) {
-        if (isMongoId(idParam)) {
-          data = await getPaymentStatus(idParam);
-        } else {
-          data = await getPaymentStatusByTransactionId(idParam);
-        }
+      // 4. If ?id= is provided as a Mongo ObjectId
+      else if (idParam && isMongoId(idParam)) {
+        data = await getPaymentStatus(idParam);
       }
       // 4. Invalid orderId format
       else if (orderIdParam && !isMongoId(orderIdParam)) {
@@ -100,6 +112,23 @@ const PaymentStatus = () => {
       return () => clearTimeout(timer);
     }
   }, [order, pollCount, fetchStatus]);
+
+  // Clear cart only upon authoritative APPROVED / CONFIRMED status
+  // and strictly if this order matches the pending payment in sessionStorage
+  useEffect(() => {
+    if (order && (order.paymentStatus === 'APPROVED' || order.orderStatus === 'CONFIRMED')) {
+      const pendingOrderId = sessionStorage.getItem('noir_pending_payment_order');
+      const currentOrderId = order.orderId || order._id;
+
+      if (
+        !pendingOrderId ||
+        (currentOrderId && String(pendingOrderId) === String(currentOrderId))
+      ) {
+        clearCart();
+        sessionStorage.removeItem('noir_pending_payment_order');
+      }
+    }
+  }, [order, clearCart]);
 
   const handleDownloadInvoice = async () => {
     if (!order) return;

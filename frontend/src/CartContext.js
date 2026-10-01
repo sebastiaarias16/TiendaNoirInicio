@@ -1,7 +1,9 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getCartItemKey } from './utils/productUtils';
 
 export const CartContext = createContext();
+
+export const useCart = () => useContext(CartContext);
 
 /**
  * Normalizes legacy or raw cart items into the robust composite key structure.

@@ -400,8 +400,104 @@ router.get('/:orderId', async (req, res) => {
 });
 
 /**
+ * Authoritative synchronization helper: queries Wompi transaction and updates order state.
+ * Validates reference, amount in cents, and currency COP.
+ * Guarantees idempotency and executes side effects (PDF/email) once.
+ */
+async function syncOrderWithWompiTx(order, wompiTx) {
+  if (!order || !wompiTx) return order;
+
+  // Idempotency: if already approved, do not perform duplicate transitions
+  if (order.paymentStatus === 'APPROVED') {
+    return order;
+  }
+
+  const {
+    id: transactionId,
+    status: transactionStatus,
+    reference,
+    amount_in_cents: amountInCents,
+    currency,
+    payment_method_type: methodType,
+    status_message: statusMessage,
+  } = wompiTx;
+
+  const expectedAmountInCents = Math.round(Number(order.total) * 100);
+  if (
+    reference !== order.paymentReference ||
+    amountInCents !== expectedAmountInCents ||
+    currency !== 'COP'
+  ) {
+    console.warn(
+      `🚨 Discrepancia al sincronizar Wompi: RefEsperada=${order.paymentReference}, RefRecibida=${reference}, MontoEsperado=${expectedAmountInCents}, MontoRecibido=${amountInCents}, Moneda=${currency}`
+    );
+    return order;
+  }
+
+  const oldPaymentStatus = order.paymentStatus;
+
+  if (transactionStatus === 'APPROVED') {
+    order.paymentStatus = 'APPROVED';
+    order.orderStatus = 'CONFIRMED';
+    order.paymentTransactionId = transactionId;
+    order.paymentMethodType = methodType || order.paymentMethod;
+    order.paidAt = order.paidAt || new Date();
+    order.paymentUpdatedAt = new Date();
+    order.paymentStatusMessage = 'Transacción aprobada por Wompi.';
+
+    order.paymentAuditTrail.push({
+      eventType: 'PAYMENT_APPROVED_SYNC',
+      provider: 'WOMPI',
+      transactionId,
+      reference,
+      oldStatus: oldPaymentStatus,
+      newStatus: 'APPROVED',
+      timestamp: new Date(),
+      details: { methodType, amountInCents },
+    });
+
+    await order.save();
+    await processApprovedOrderSideEffects(order);
+    console.log(`✅ Orden ${order.orderNumber} confirmada y pagada exitosamente vía sincronización con Wompi.`);
+  } else if (
+    transactionStatus === 'DECLINED' ||
+    transactionStatus === 'ERROR' ||
+    transactionStatus === 'VOIDED'
+  ) {
+    order.paymentStatus = transactionStatus === 'DECLINED' ? 'DECLINED' : 'FAILED';
+    order.paymentTransactionId = transactionId;
+    order.paymentStatusMessage = statusMessage || 'Pago no aprobado por la entidad financiera.';
+    order.paymentUpdatedAt = new Date();
+
+    await releaseOrderStock(order, `WOMPI_${transactionStatus}`);
+
+    order.paymentAuditTrail.push({
+      eventType: `PAYMENT_${transactionStatus}_SYNC`,
+      provider: 'WOMPI',
+      transactionId,
+      reference,
+      oldStatus: oldPaymentStatus,
+      newStatus: order.paymentStatus,
+      timestamp: new Date(),
+      details: { statusMessage },
+    });
+
+    await order.save();
+    console.log(`❌ Orden ${order.orderNumber}: Pago ${transactionStatus} sincronizado. Stock reintegrado.`);
+  } else if (transactionStatus === 'PENDING') {
+    order.paymentStatus = 'PROCESSING';
+    order.paymentTransactionId = transactionId;
+    order.paymentUpdatedAt = new Date();
+    await order.save();
+  }
+
+  return order;
+}
+
+/**
  * 📌 GET /api/payments/status/by-reference/:reference
  * Looks up order status by Wompi payment reference.
+ * Optionally synchronizes with Wompi if transactionId is passed via query.
  */
 router.get('/status/by-reference/:reference', async (req, res) => {
   try {
@@ -410,9 +506,18 @@ router.get('/status/by-reference/:reference', async (req, res) => {
       return res.status(400).json({ error: 'Referencia requerida.' });
     }
 
-    const order = await Order.findOne({ paymentReference: reference });
+    let order = await Order.findOne({ paymentReference: reference });
     if (!order) {
       return res.status(404).json({ error: 'No se encontró una orden con dicha referencia.' });
+    }
+
+    // If transactionId query param provided and order not yet approved, sync with Wompi
+    const queryTxId = req.query.id || req.query.transactionId || order.paymentTransactionId;
+    if (queryTxId && order.paymentStatus !== 'APPROVED') {
+      const wompiTx = await fetchTransactionFromWompi(queryTxId);
+      if (wompiTx) {
+        order = await syncOrderWithWompiTx(order, wompiTx);
+      }
     }
 
     return res.json({
@@ -445,7 +550,7 @@ router.get('/status/by-reference/:reference', async (req, res) => {
 
 /**
  * 📌 GET /api/payments/status/by-transaction/:transactionId
- * Looks up order status by Wompi transaction ID.
+ * Looks up order status by Wompi transaction ID and authoritatively synchronizes with Wompi API.
  */
 router.get('/status/by-transaction/:transactionId', async (req, res) => {
   try {
@@ -455,12 +560,18 @@ router.get('/status/by-transaction/:transactionId', async (req, res) => {
     }
 
     let order = await Order.findOne({ paymentTransactionId: transactionId });
+    let wompiTx = null;
 
-    // Fallback: If webhook hasn't stored transactionId yet, query Wompi API
-    if (!order) {
-      const wompiTx = await fetchTransactionFromWompi(transactionId);
+    // Fetch fresh status from Wompi if order is not found or not yet approved
+    if (!order || order.paymentStatus !== 'APPROVED') {
+      wompiTx = await fetchTransactionFromWompi(transactionId);
       if (wompiTx && wompiTx.reference) {
-        order = await Order.findOne({ paymentReference: wompiTx.reference });
+        if (!order) {
+          order = await Order.findOne({ paymentReference: wompiTx.reference });
+        }
+        if (order) {
+          order = await syncOrderWithWompiTx(order, wompiTx);
+        }
       }
     }
 

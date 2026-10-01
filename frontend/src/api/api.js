@@ -64,11 +64,12 @@ export const getPaymentStatus = async (orderId) => {
 };
 
 // 🔍 Consultar estado autoritativo de pago por referencia de Wompi
-export const getPaymentStatusByReference = async (reference) => {
+export const getPaymentStatusByReference = async (reference, transactionId = null) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/api/payments/status/by-reference/${encodeURIComponent(reference)}`
-    );
+    const url = transactionId
+      ? `${API_URL}/api/payments/status/by-reference/${encodeURIComponent(reference)}?id=${encodeURIComponent(transactionId)}`
+      : `${API_URL}/api/payments/status/by-reference/${encodeURIComponent(reference)}`;
+    const response = await axios.get(url);
     return response.data;
   } catch (error) {
     console.error('❌ Error consultando estado por referencia:', error);

@@ -12,13 +12,13 @@ const productos = [
     nombre: 'Camiseta Noir Pro',
     precio: 40.000,
     descripcion: 'Camiseta deportiva de compresión con tela transpirable.',
-    stock: 3,
+    stock: 15,
     categoria: 'Camisa Compresion',
     imagenes: [
       'http://localhost:3000/uploads/CamisaHombre3.jpg'     // Negro
     ],
     tallas: ['S', 'M', 'L'],
-    colores: ['Negro'],
+    colores: ['Negro', 'Gris', 'Blanco'],
     featured: true
   },
   {
@@ -31,7 +31,7 @@ const productos = [
       'http://localhost:3000/uploads//leggingMujer2.png'        // Negro
     ],
     tallas: ['S', 'M', 'L', 'XL'],
-    colores: ['Negro']
+    colores: ['Negro', 'Gris', 'Blanco']
   },
   {
     nombre: 'Leggins Mujer Noir',
@@ -43,20 +43,20 @@ const productos = [
       'http://localhost:3000/uploads//leggingMujer3.png'        // Negro
     ],
     tallas: ['S', 'M', 'L', 'XL'],
-    colores: ['Negro'],
+    colores: ['Negro', 'Gris', 'Blanco'],
     featured: true
   },
   {
     nombre: 'Camiseta Noir Manga larga',
     precio: 46.000,
     descripcion: 'Camiseta manga larga deportiva de compresión adaptable al cuerpo.',
-    stock: 3,
+    stock: 10,
     categoria: 'Camisa Compresion',
     imagenes: [
       'http://localhost:3000/uploads/CamisaCompresionMangaLargaHombre2.png'     // Negro
     ],
     tallas: ['S', 'M', 'L'],
-    colores: ['Negro']
+    colores: ['Negro', 'Gris', 'Blanco']
   },
   {
     nombre: 'Camiseta Noir Pro',
@@ -70,7 +70,7 @@ const productos = [
       'http://localhost:3000/uploads/CamisaCompresionHombreRojo.png'     // Rojo
     ],
     tallas: ['S', 'M', 'L'],
-    colores: ['Gris','Azul','Rojo'],
+    colores: ['Gris', 'Azul', 'Rojo'],
     featured: true
   },
   {
@@ -98,7 +98,7 @@ const productos = [
       'http://localhost:3000/uploads/ConjuntoMujerBlanco.png'   //Blanco
     ],
     tallas: ['S', 'M', 'L'],
-    colores: ['Gris','Azul','Rojo'],
+    colores: ['Gris', 'Azul', 'Rojo'],
     featured: true
   }
 ];

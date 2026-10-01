@@ -67,10 +67,10 @@ const Checkout = () => {
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [invoiceMessage, setInvoiceMessage] = useState('');
 
-  // Dynamically load official Wompi checkout script
+  // Ensure official Wompi checkout widget script is loaded
   useEffect(() => {
     const scriptId = 'wompi-checkout-widget-script';
-    if (!document.getElementById(scriptId)) {
+    if (typeof window.WidgetCheckout === 'undefined' && !document.getElementById(scriptId)) {
       const script = document.createElement('script');
       script.id = scriptId;
       script.src = 'https://checkout.wompi.co/widget.js';
@@ -224,48 +224,106 @@ const Checkout = () => {
             userId: user._id,
           });
 
-          clearCart();
-
-          // Try official programmatic WidgetCheckout first
-          if (typeof window.WidgetCheckout === 'function' && wompiData.publicKey) {
-            const checkout = new window.WidgetCheckout({
-              currency: wompiData.currency,
-              amountInCents: wompiData.amountInCents,
-              reference: wompiData.reference,
-              publicKey: wompiData.publicKey,
-              signature: { integrity: wompiData.signature },
-              redirectUrl: wompiData.redirectUrl,
-              customerData: {
-                email: formData.email,
-                fullName: formData.name,
-                phoneNumber: {
-                  prefix: '+57',
-                  number: formData.phone.replace(/\D/g, '').slice(-10),
-                },
-              },
-            });
-
-            checkout.open((result) => {
-              navigate(
-                `/payment/status?reference=${encodeURIComponent(wompiData.reference)}&orderId=${savedOrder._id}`
-              );
-            });
-          } else if (wompiData.webCheckoutUrl) {
-            // Direct hosted fallback
-            window.location.href = wompiData.webCheckoutUrl;
-          } else {
-            navigate(
-              `/payment/status?reference=${encodeURIComponent(wompiData.reference)}&orderId=${savedOrder._id}`
+          // Validar que existan todos los campos obligatorios
+          if (
+            !wompiData ||
+            !wompiData.publicKey ||
+            !wompiData.currency ||
+            !wompiData.amountInCents ||
+            !wompiData.reference ||
+            !wompiData.signature ||
+            !wompiData.redirectUrl
+          ) {
+            setServerError(
+              'No fue posible iniciar la pasarela de pago. Faltan datos requeridos de Wompi. Tu carrito permanece intacto. Intenta nuevamente.'
             );
+            return;
           }
+
+          // ANTES DE ABRIR WOMPI: Registrar orden pendiente en sessionStorage
+          sessionStorage.setItem(
+            'noir_pending_payment_order',
+            String(savedOrder._id)
+          );
+
+          // FLUJO PRINCIPAL: Wompi Widget Checkout Modal
+          if (typeof window.WidgetCheckout === 'function') {
+            try {
+              const checkout = new window.WidgetCheckout({
+                currency: wompiData.currency,
+                amountInCents: wompiData.amountInCents,
+                reference: wompiData.reference,
+                publicKey: wompiData.publicKey,
+                signature: {
+                  integrity: wompiData.signature,
+                },
+                redirectUrl: wompiData.redirectUrl,
+                bootstrapTransport: 'postmessage',
+                customerData: {
+                  email: wompiData.customerEmail || formData.email,
+                  fullName: wompiData.customerName || formData.name,
+                  phoneNumber: wompiData.customerPhone || formData.phone,
+                  phoneNumberPrefix: '+57',
+                },
+              });
+
+              checkout.open((result) => {
+                /*
+                 IMPORTANTE:
+                 El callback de WidgetCheckout NO debe considerarse
+                 autoridad final sobre el pago.
+
+                 No hacer:
+                 clearCart()
+                 confirmar orden
+                 marcar APPROVED
+                 reducir stock
+                 emitir factura
+
+                 desde este callback.
+                */
+                // Si Wompi proporciona transaction.id, reference o status,
+                // conservarlos solamente para navegación/diagnóstico.
+                const transactionId = result?.transaction?.id;
+                const targetUrl = transactionId
+                  ? `/payment/status?reference=${encodeURIComponent(
+                      wompiData.reference
+                    )}&orderId=${encodeURIComponent(savedOrder._id)}&id=${encodeURIComponent(transactionId)}`
+                  : `/payment/status?reference=${encodeURIComponent(
+                      wompiData.reference
+                    )}&orderId=${encodeURIComponent(savedOrder._id)}`;
+
+                navigate(targetUrl);
+              });
+              return;
+            } catch (widgetErr) {
+              console.error('Error al inicializar o abrir WidgetCheckout:', widgetErr);
+              setServerError(
+                'Ocurrió un error al abrir el widget de pago de Wompi. Tu carrito permanece intacto. Puedes intentar nuevamente.'
+              );
+              return;
+            }
+          }
+
+          // FALLBACK: Si WidgetCheckout no está disponible, loguear y usar Web Checkout
+          console.warn('Wompi WidgetCheckout no está disponible; usando Web Checkout fallback.');
+          if (wompiData.webCheckoutUrl) {
+            window.location.assign(wompiData.webCheckoutUrl);
+            return;
+          }
+
+          setServerError(
+            'No fue posible iniciar la pasarela de pago. Tu carrito permanece intacto. Intenta nuevamente.'
+          );
+          return;
         } catch (wompiErr) {
           console.error('Error iniciando Wompi:', wompiErr);
           setServerError(
             wompiErr.response?.data?.error ||
-              'No fue posible iniciar la pasarela de pagos. Por favor intenta nuevamente.'
+              'No fue posible iniciar la pasarela de pagos. Tu carrito permanece intacto. Intenta nuevamente.'
           );
+          return;
         }
-        return;
       }
 
       // -----------------------------------------------------------------
