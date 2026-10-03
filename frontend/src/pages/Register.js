@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { register } from '../api/auth';
 import '../styles/register.css';
-import backgroundImage from '../assets/fondo2.jpg';
+import backgroundImage from '../assets/fondo2.png';
 
 const Register = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });

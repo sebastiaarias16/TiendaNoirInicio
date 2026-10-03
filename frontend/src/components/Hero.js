@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import fondo1 from '../assets/Fondo1.jpg';
-import fondo2 from '../assets/fondo2.jpg';
-import fondo3 from '../assets/fondo3.jpg';
+import fondo1 from '../assets/Fondo1.png';
+import fondo2 from '../assets/fondo2.png';
+import fondo3 from '../assets/fondo3.png';
 import '../styles/hero.css';
 
 const slides = [

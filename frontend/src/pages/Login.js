@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { login } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
 import '../styles/login.css';
-import backgroundImage from '../assets/fondo2.jpg';
+import backgroundImage from '../assets/fondo2.png';
 
 const Login = ({ setUser }) => {
   const [form, setForm] = useState({ email: '', password: '' });
