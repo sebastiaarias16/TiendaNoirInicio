@@ -38,6 +38,9 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+  display: block;
+  position: relative;
+  z-index: 1;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
 
@@ -45,26 +48,47 @@
   transform: scale(1.04);
 }
 
-/* Subtle Badges */
+/* Subtle Badges — Guaranteed Stacking Over Media */
 .product-card-badge {
   position: absolute;
   top: 12px;
   left: 12px;
-  padding: 4px 8px;
+  padding: 5px 10px;
   font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: var(--tracking-wider);
+  letter-spacing: var(--tracking-wider, 0.12em);
   text-transform: uppercase;
-  background-color: rgba(8, 8, 8, 0.85);
-  color: var(--noir-text-primary);
-  border: 1px solid var(--noir-border-subtle);
-  backdrop-filter: blur(4px);
-  z-index: 2;
+  background-color: rgba(8, 8, 8, 0.88);
+  color: var(--noir-text-primary, #ffffff);
+  border: 1px solid var(--noir-border-subtle, rgba(255, 255, 255, 0.15));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.product-card-badge.badge-proximamente {
+  background-color: rgba(10, 10, 10, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  letter-spacing: 0.14em;
+  z-index: 15;
 }
 
 .product-card-badge.low-stock {
   color: var(--noir-accent-champagne);
   border-color: rgba(197, 168, 128, 0.3);
+}
+
+.product-card-price-soon {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wider, 0.1em);
+  color: var(--noir-text-secondary, #a0a0a0);
+  text-transform: uppercase;
 }
 
 /* Details Section */
@@ -169,8 +193,25 @@
   border: 1px solid var(--noir-border-medium);
 }
 
-.btn-card-add:hover {
+.btn-card-add:hover:not(:disabled) {
   background-color: var(--noir-text-primary);
   color: var(--noir-bg-primary);
   border-color: var(--noir-text-primary);
+}
+
+.btn-card-add:disabled,
+.btn-card-add.btn-disabled {
+  background-color: rgba(18, 18, 18, 0.6);
+  color: var(--noir-text-muted);
+  border-color: var(--noir-border-subtle);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-card-add:disabled:hover,
+.btn-card-add.btn-disabled:hover {
+  background-color: rgba(18, 18, 18, 0.6);
+  color: var(--noir-text-muted);
+  border-color: var(--noir-border-subtle);
+  transform: none;
 }

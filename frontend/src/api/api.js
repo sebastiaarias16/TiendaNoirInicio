@@ -2,22 +2,33 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3000';
 
-// 📌 Obtener productos del catálogo desde la API (solo disponibles)
+// 📌 Obtener productos del catálogo desde la API (compatible con array directo o { value, Count })
 export const fetchCartItems = async () => {
   try {
     const response = await axios.get(`${API_URL}/api/products`);
-    return response.data.filter((producto) => producto.stock > 0);
+    const products = Array.isArray(response.data)
+      ? response.data
+      : Array.isArray(response.data?.value)
+        ? response.data.value
+        : [];
+    return products;
   } catch (error) {
     console.error('❌ Error al obtener productos:', error);
     return [];
   }
 };
 
+// Alias compatible para consumo de productos
+export const getProducts = fetchCartItems;
+
 // 📌 Obtener un producto por ID desde la API
 export const fetchProductById = async (id) => {
   try {
     const response = await axios.get(`${API_URL}/api/products/${id}`);
-    return response.data;
+    const product = (response.data && response.data.value !== undefined)
+      ? response.data.value
+      : response.data;
+    return product;
   } catch (error) {
     if (error.response && error.response.status === 404) {
       return null;

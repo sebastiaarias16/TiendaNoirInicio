@@ -106,6 +106,105 @@ const productos = [
     tallas: ['S', 'M'],
     colores: ['Negro'],
     featured: false
+  },
+  {
+    nombre: 'Camiseta Oversize',
+    precio: 0,
+    descripcion: 'Camiseta oversize NOIR para hombre con silueta relajada y corte streetwear contemporáneo. Diseñada para brindar comodidad y presencia dentro y fuera del entrenamiento.',
+    stock: 0,
+    categoria: 'Camiseta',
+    imagen: [
+      '/uploads/productos/hombre/camisa_oversize/Camisa_Overzise_Frontal_posterior1.jpg',
+      '/uploads/productos/hombre/camisa_oversize/Catalogo_camisetas_overzise1.png'
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Camiseta Tank',
+    precio: 0,
+    descripcion: 'Camiseta tank NOIR para hombre con sisa amplia y corte ergonómico. Diseñada para optimizar el rango de movimiento y rendimiento en entrenamientos de alta intensidad.',
+    stock: 0,
+    categoria: 'Camiseta',
+    imagen: [
+      '/uploads/productos/hombre/camisa_tank/FontralTank1.jpg',
+      '/uploads/productos/hombre/camisa_tank/PosteriorTank1.jpg',
+      '/uploads/productos/hombre/camisa_tank/Catalogo_de_camisetas_tank1.png'
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Hoodie Oversize',
+    precio: 0,
+    descripcion: 'Buzo hoodie oversize NOIR para hombre con capota estructurada, bolsillo frontal y caída amplia. Una prenda esencial de estética urbana y comodidad superior.',
+    stock: 0,
+    categoria: 'Hoodie',
+    imagen: [
+      '/uploads/productos/hombre/hoodis/Hoodi_Overzise_Frontal1.jpg',
+      '/uploads/productos/hombre/hoodis/Hoodi_Overzise_Posterior1.jpg'
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Jogger',
+    precio: 0,
+    descripcion: 'Jogger deportivo NOIR para hombre con pretina elástica ajustable y corte cónico funcional. Diseñado para ofrecer versatilidad y confort en movimiento.',
+    stock: 0,
+    categoria: 'Jogger',
+    imagen: [
+      '/uploads/productos/hombre/jogger/Jogger_Frontal1.jpg',
+      '/uploads/productos/hombre/jogger/Jogger_Posterior1.jpg'
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Bicicletero Mujer',
+    precio: 0,
+    descripcion: 'Bicicletero deportivo para mujer con pretina anatómica de tiro alto y ajuste ceñido. Diseñado para proporcionar soporte y libertad de movimiento en cada rutina.',
+    stock: 0,
+    categoria: 'Bicicletero',
+    imagen: [
+      '/uploads/productos/mujer/bicicletero/Frontal_Bicicletero_Mujer1.jpg',
+      '/uploads/productos/mujer/bicicletero/Posterior_Bicicletero_Mujer1.jpg'
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Top Manga Larga Mujer',
+    precio: 0,
+    descripcion: 'Top deportivo de manga larga para mujer con cuello ergonómico y ajuste anatómico al cuerpo. Diseñado para entrenamientos que demandan máxima concentración y estilo.',
+    stock: 0,
+    categoria: 'Top',
+    imagen: [
+      '/uploads/productos/mujer/top_manga_larga/Frontal_Manga_larga_Top_1.jpg',
+      '/uploads/productos/mujer/top_manga_larga/Posterior_Manga_Larga_Top_1.jpg',
+      '/uploads/productos/mujer/top_manga_larga/Catalogo_Manga_larga_Top_1.png'
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Conjunto Hoodie Oversize + Jogger',
+    precio: 0,
+    descripcion: 'Conjunto coordinado NOIR Hoodie Oversize y Jogger. Silueta relajada y estética minimalista para entrenar con presencia y vestir streetwear de alto impacto.',
+    stock: 0,
+    categoria: 'Conjunto',
+    imagen: [
+      '/uploads/productos/conjuntos/Conjunto_Overzise_Hoddi_Jogger.jpg'
+    ],
+    tallas: ['S', 'M', 'L'],
+    colores: ['Negro'],
+    featured: false
   }
 ];
 

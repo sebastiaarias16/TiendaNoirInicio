@@ -10,10 +10,13 @@ const ProductCard = ({ product, addToCart }) => {
   // Link directly to the Phase 4 Product Detail route
   const productDetailUrl = product?._id ? `/products/${product._id}` : '/products';
 
+  // Lógica de producto próximamente (precio 0 o stock 0)
+  const isComingSoon = Number(product?.precio) === 0 || Number(product?.stock) === 0;
+
   const handleAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!addToCart) return;
+    if (!addToCart || isComingSoon) return;
 
     // Attach first available size and color as safe defaults for immediate checkout validity
     const itemToAdd = {
@@ -34,12 +37,6 @@ const ProductCard = ({ product, addToCart }) => {
         className="product-card-media"
         aria-label={`Ver detalles de ${product.nombre}`}
       >
-        {product.featured && (
-          <span className="product-card-badge">DROP 01</span>
-        )}
-        {product.stock && product.stock <= 3 && (
-          <span className="product-card-badge low-stock">Últimas Unidades</span>
-        )}
         <img
           src={imageSrc}
           alt={product.nombre}
@@ -49,6 +46,20 @@ const ProductCard = ({ product, addToCart }) => {
             e.target.src = '/Img/foto.png';
           }}
         />
+
+        {/* Badges posicionales visibles SOBRE la imagen */}
+        {isComingSoon ? (
+          <span className="product-card-badge badge-proximamente">PRÓXIMAMENTE</span>
+        ) : (
+          <>
+            {product.featured && (
+              <span className="product-card-badge">DROP 01</span>
+            )}
+            {product.stock > 0 && product.stock <= 3 && (
+              <span className="product-card-badge low-stock">Últimas Unidades</span>
+            )}
+          </>
+        )}
       </Link>
 
       <div className="product-card-details">
@@ -66,10 +77,16 @@ const ProductCard = ({ product, addToCart }) => {
 
         <div className="product-card-meta">
           <div className="product-card-price">
-            {formatCOP(product.precio)}
-            <span className="product-card-currency">COP</span>
+            {isComingSoon ? (
+              <span className="product-card-price-soon">PRÓXIMAMENTE</span>
+            ) : (
+              <>
+                {formatCOP(product.precio)}
+                <span className="product-card-currency">COP</span>
+              </>
+            )}
           </div>
-          {product.stock > 0 && (
+          {!isComingSoon && product.stock > 0 && (
             <span style={{ fontSize: '0.7rem', color: 'var(--noir-text-muted)', letterSpacing: '0.04em' }}>
               En Stock
             </span>
@@ -77,14 +94,25 @@ const ProductCard = ({ product, addToCart }) => {
         </div>
 
         <div className="product-card-actions">
-          <button
-            type="button"
-            className={`btn btn-card-add ${added ? 'btn-accent' : ''}`}
-            onClick={handleAdd}
-            aria-label={`Añadir ${product.nombre} al carrito`}
-          >
-            {added ? 'Añadido ✓' : 'Añadir al Carrito'}
-          </button>
+          {isComingSoon ? (
+            <button
+              type="button"
+              className="btn btn-card-add btn-disabled"
+              disabled
+              aria-label={`${product.nombre} — Próximamente`}
+            >
+              PRÓXIMAMENTE
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={`btn btn-card-add ${added ? 'btn-accent' : ''}`}
+              onClick={handleAdd}
+              aria-label={`Añadir ${product.nombre} al carrito`}
+            >
+              {added ? 'Añadido ✓' : 'Añadir al Carrito'}
+            </button>
+          )}
         </div>
       </div>
     </article>
