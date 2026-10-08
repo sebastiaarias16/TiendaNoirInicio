@@ -68,6 +68,9 @@ export const getImageSrc = (product) => {
 
   if (!imgRef) return '/Img/foto.png';
   if (imgRef.startsWith('http://') || imgRef.startsWith('https://')) return imgRef;
+  if (imgRef.startsWith('/uploads/')) return `${API_URL}${imgRef}`;
+  if (imgRef.startsWith('uploads/')) return `${API_URL}/${imgRef}`;
+  if (imgRef.startsWith('productos/')) return `${API_URL}/uploads/${imgRef}`;
   if (imgRef.startsWith('/')) return imgRef;
   return `${API_URL}/uploads/${imgRef}`;
 };

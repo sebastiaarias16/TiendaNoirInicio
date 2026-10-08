@@ -1,117 +1,111 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
-const Producto = require('../models/Product'); // Asegúrate de que este modelo exista
-
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+/**
+ * NOIR Apparel — Catálogo maestro de productos y exportación de datos estáticos.
+ * 
+ * NOTA:
+ * Este archivo sirve únicamente como catálogo estático/exportación de datos.
+ * No ejecuta escrituras ni conexiones directas a MongoDB.
+ */
 
 const productos = [
   {
-    nombre: 'Camiseta Noir Pro',
-    precio: 40.000,
-    descripcion: 'Camiseta deportiva de compresión con tela transpirable.',
-    stock: 15,
-    categoria: 'Camisa Compresion',
-    imagenes: [
-      'http://localhost:3000/uploads/CamisaHombre3.jpg'     // Negro
-    ],
-    tallas: ['S', 'M', 'L'],
-    colores: ['Negro', 'Gris', 'Blanco'],
-    featured: true
-  },
-  {
-    nombre: 'Leggins Mujer Noir',
-    precio: 85.000,
-    descripcion: 'Leggins flexibles para mujer con control abdominal.',
-    stock: 5,
-    categoria: 'legging Pantalon',
-    imagenes: [
-      'http://localhost:3000/uploads//leggingMujer2.png'        // Negro
-    ],
-    tallas: ['S', 'M', 'L', 'XL'],
-    colores: ['Negro', 'Gris', 'Blanco']
-  },
-  {
-    nombre: 'Leggins Mujer Noir',
-    precio: 85.000,
-    descripcion: 'Leggins flexibles para mujer con control abdominal.',
-    stock: 5,
-    categoria: 'legging Pantalon',
-    imagenes: [
-      'http://localhost:3000/uploads//leggingMujer3.png'        // Negro
-    ],
-    tallas: ['S', 'M', 'L', 'XL'],
-    colores: ['Negro', 'Gris', 'Blanco'],
-    featured: true
-  },
-  {
-    nombre: 'Camiseta Noir Manga larga',
-    precio: 46.000,
-    descripcion: 'Camiseta manga larga deportiva de compresión adaptable al cuerpo.',
+    nombre: 'Camiseta Hombre',
+    precio: 89900,
+    descripcion: 'Camiseta deportiva y urbana NOIR con corte regular premium y tela de alto rendimiento.',
     stock: 10,
-    categoria: 'Camisa Compresion',
-    imagenes: [
-      'http://localhost:3000/uploads/CamisaCompresionMangaLargaHombre2.png'     // Negro
+    categoria: 'Camiseta',
+    imagen: [
+      '/uploads/productos/hombre/camiseta/Camisa_Frontal1.jpg',
+      '/uploads/productos/hombre/camiseta/Camisa_Posterior1.jpg',
+      '/uploads/productos/hombre/camiseta/Catalogo_Colorways_de_Camisetas1.png'
     ],
-    tallas: ['S', 'M', 'L'],
-    colores: ['Negro', 'Gris', 'Blanco']
-  },
-  {
-    nombre: 'Camiseta Noir Pro',
-    precio: 40.000,
-    descripcion: 'Camiseta deportiva de compresión con tela transpirable.',
-    stock: 3,
-    categoria: 'Camisa Compresion',
-    imagenes: [
-      'http://localhost:3000/uploads/CamisaHombre2.jpg',     // Gris
-      'http://localhost:3000/uploads/CamisaCompresionHombreAzul.png',     // Azul
-      'http://localhost:3000/uploads/CamisaCompresionHombreRojo.png'     // Rojo
-    ],
-    tallas: ['S', 'M', 'L'],
-    colores: ['Gris', 'Azul', 'Rojo'],
+    tallas: ['M', 'L'],
+    colores: ['Negro'],
     featured: true
   },
   {
-    nombre: 'Pantaloneta deportiva',
-    precio: 25.000,
-    descripcion: 'pantaloneta deportiva corta.',
-    stock: 3,
+    nombre: 'Pantaloneta Hombre',
+    precio: 89900,
+    descripcion: 'Pantaloneta deportiva NOIR de alta resistencia y secado rápido para entrenamiento y streetwear.',
+    stock: 9,
     categoria: 'Pantaloneta',
-    imagenes: [
-      'http://localhost:3000/uploads/PantalonetaHombre1.png',     // Azul
+    imagen: [
+      '/uploads/productos/hombre/pantaloneta/pantaloneta_frontal1.jpg',
+      '/uploads/productos/hombre/pantaloneta/pantaloneta_posterior1.jpg',
+      '/uploads/productos/hombre/pantaloneta/Catalogo_Pantalonetas_deportivas1.png'
     ],
-    tallas: ['S', 'M', 'L'],
-    colores: ['Negro']
+    tallas: ['M', 'L'],
+    colores: ['Negro'],
+    featured: true
   },
   {
-    nombre: 'Conjunto de compresion Mujer',
-    precio: 25.000,
-    descripcion: 'Conjunto deportivo de legging con control abdominal y Top corto manga larga.',
-    stock: 3,
-    categoria: 'Conjunto Mujer',
-    imagenes: [
-      'http://localhost:3000/uploads/ConjuntoMujerNegro.png',     // Negro
-      'http://localhost:3000/uploads/ConjuntoMujerAzulOscuro.png',     // Azul Oscuro
-      'http://localhost:3000/uploads/ConjuntoMujerGris.png',     // Gris
-      'http://localhost:3000/uploads/ConjuntoMujerBlanco.png'   //Blanco
+    nombre: 'Short Mujer',
+    precio: 84900,
+    descripcion: 'Short deportivo para mujer con compresión suave, tiro alto y control abdominal.',
+    stock: 15,
+    categoria: 'Short',
+    imagen: [
+      '/uploads/productos/mujer/short/Frontal_Short1.jpg',
+      '/uploads/productos/mujer/short/Posterior_Short1.jpg'
     ],
-    tallas: ['S', 'M', 'L'],
-    colores: ['Gris', 'Azul', 'Rojo'],
-    featured: true
+    tallas: ['S', 'M'],
+    colores: ['Negro', 'Blanco', 'Rojo'],
+    featured: false
+  },
+  {
+    nombre: 'Top Mujer',
+    precio: 79900,
+    descripcion: 'Top deportivo NOIR con soporte firme, tirantes reforzados y diseño ergonómico.',
+    stock: 10,
+    categoria: 'Top',
+    imagen: [
+      '/uploads/productos/mujer/top_deportivo/Frontal_Top1.jpg',
+      '/uploads/productos/mujer/top_deportivo/Posterior_Top1.jpg'
+    ],
+    tallas: ['S', 'M'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'leggins Mujer',
+    precio: 119900,
+    descripcion: 'Leggins deportivos de alto rendimiento con pretina anatómica, control de figura y tejido opaco premium.',
+    stock: 10,
+    categoria: 'leggins',
+    imagen: [
+      '/uploads/productos/mujer/leggings/legguins_Frontal1.jpg',
+      '/uploads/productos/mujer/leggings/legguins_Posterior1.jpg',
+      '/uploads/productos/mujer/leggings/Catalogo_legguins1.png'
+    ],
+    tallas: ['S', 'M'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Conjunto Camiseta y Pantaloneta',
+    precio: 149900,
+    descripcion: 'Conjunto coordinado NOIR Camiseta y Pantaloneta. Máxima transpirabilidad y estilo urbano para entrenamiento.',
+    stock: 9,
+    categoria: 'Conjunto',
+    imagen: [
+      '/uploads/productos/conjuntos/Conjunto_Hombre_Camisa_Pantaloneta.jpg'
+    ],
+    tallas: ['S', 'M'],
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Conjunto Top y Leggins',
+    precio: 169900,
+    descripcion: 'Conjunto coordinado NOIR Top y Leggins. Ajuste anatómico y confección premium para alto rendimiento.',
+    stock: 10,
+    categoria: 'Conjunto',
+    imagen: [
+      '/uploads/productos/conjuntos/Conjunto_Mujer_TopMangaLarga_Legguins.jpg'
+    ],
+    tallas: ['S', 'M'],
+    colores: ['Negro'],
+    featured: false
   }
 ];
 
-const insertarProductos = async () => {
-  try {
-    await Producto.insertMany(productos);
-    console.log('✅ Productos insertados correctamente');
-    mongoose.connection.close();
-  } catch (error) {
-    console.error('❌ Error insertando productos:', error);
-    mongoose.connection.close();
-  }
-};
-
-insertarProductos();
+module.exports = { productos };

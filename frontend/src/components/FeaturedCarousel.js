@@ -9,11 +9,11 @@ const FeaturedCategories = () => {
   const categories = [
     {
       title: "Mujer",
-      image: `${API_URL}/uploads/IMGMUJER.jpg`,
+      image: `${API_URL}/uploads/marketing/IMGMUJER.jpg`,
     },
     {
       title: "Hombre",
-      image: `${API_URL}/uploads/IMGHOMBRE.jpg`,
+      image: `${API_URL}/uploads/marketing/IMGHOMBRE.jpg`,
     },
   ];
 

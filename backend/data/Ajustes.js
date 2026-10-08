@@ -1,22 +1,23 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
-const Producto = require('../models/Product');
+/**
+ * NOIR Apparel — Catálogo oficial de referencia y datos semilla.
+ * 
+ * NOTA DE SEGURIDAD:
+ * Este archivo es exclusivamente una fuente de datos/exportación estática.
+ * No ejecuta operaciones de conexión ni mutación sobre MongoDB.
+ * Para migraciones controladas de catálogo, utilizar scripts quirúrgicos dedicados.
+ */
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
-
-// Nuevos productos
 const productos = [
   {
     nombre: 'Camiseta Hombre',
-    precio: 60000,
-    descripcion: 'Camiseta de hombre NOIR.',
-    stock: 6,
+    precio: 89900,
+    descripcion: 'Camiseta deportiva y urbana NOIR con corte regular premium y tela de alto rendimiento.',
+    stock: 10,
     categoria: 'Camiseta',
     imagen: [
-      'CAMISETA.png'     // Negro
+      '/uploads/productos/hombre/camiseta/Camisa_Frontal1.jpg',
+      '/uploads/productos/hombre/camiseta/Camisa_Posterior1.jpg',
+      '/uploads/productos/hombre/camiseta/Catalogo_Colorways_de_Camisetas1.png'
     ],
     tallas: ['M', 'L'],
     colores: ['Negro'],
@@ -24,12 +25,14 @@ const productos = [
   },
   {
     nombre: 'Pantaloneta Hombre',
-    precio: 60000,
-    descripcion: 'Pantaloneta de hombre NOIR.',
-    stock: 6,
+    precio: 89900,
+    descripcion: 'Pantaloneta deportiva NOIR de alta resistencia y secado rápido para entrenamiento y streetwear.',
+    stock: 9,
     categoria: 'Pantaloneta',
     imagen: [
-      'pantalonetaHombre.png'     // Negro
+      '/uploads/productos/hombre/pantaloneta/pantaloneta_frontal1.jpg',
+      '/uploads/productos/hombre/pantaloneta/pantaloneta_posterior1.jpg',
+      '/uploads/productos/hombre/pantaloneta/Catalogo_Pantalonetas_deportivas1.png'
     ],
     tallas: ['M', 'L'],
     colores: ['Negro'],
@@ -37,77 +40,73 @@ const productos = [
   },
   {
     nombre: 'Short Mujer',
-    precio: 60000,
-    descripcion: 'Short flexibles para mujer con control abdominal.',
-    stock: 6,
+    precio: 84900,
+    descripcion: 'Short deportivo para mujer con compresión suave, tiro alto y control abdominal.',
+    stock: 15,
     categoria: 'Short',
     imagen: [
-      'shortmujer.png'        // Negro
+      '/uploads/productos/mujer/short/Frontal_Short1.jpg',
+      '/uploads/productos/mujer/short/Posterior_Short1.jpg'
     ],
     tallas: ['S', 'M'],
-    colores: ['Negro']
+    colores: ['Negro', 'Blanco', 'Rojo'],
+    featured: false
   },
   {
     nombre: 'Top Mujer',
-    precio: 60000,
-    descripcion: 'Top mujer.',
-    stock: 6,
+    precio: 79900,
+    descripcion: 'Top deportivo NOIR con soporte firme, tirantes reforzados y diseño ergonómico.',
+    stock: 10,
     categoria: 'Top',
     imagen: [
-      'top.png'        // Negro
+      '/uploads/productos/mujer/top_deportivo/Frontal_Top1.jpg',
+      '/uploads/productos/mujer/top_deportivo/Posterior_Top1.jpg'
     ],
     tallas: ['S', 'M'],
-    colores: ['Negro']
+    colores: ['Negro'],
+    featured: false
   },
   {
     nombre: 'leggins Mujer',
-    precio: 60000,
-    descripcion: 'leggins mujer.',
-    stock: 6,
+    precio: 119900,
+    descripcion: 'Leggins deportivos de alto rendimiento con pretina anatómica, control de figura y tejido opaco premium.',
+    stock: 10,
     categoria: 'leggins',
     imagen: [
-      'leggins.png'        // Negro
+      '/uploads/productos/mujer/leggings/legguins_Frontal1.jpg',
+      '/uploads/productos/mujer/leggings/legguins_Posterior1.jpg',
+      '/uploads/productos/mujer/leggings/Catalogo_legguins1.png'
     ],
     tallas: ['S', 'M'],
-    colores: ['Negro']
-  },
-  {
-    nombre: 'Conjunto Top y Leggins',
-    precio: 60000,
-    descripcion: 'Conjunto mujer.',
-    stock: 6,
-    categoria: 'Conjunto',
-    imagen: [
-      'TOP_Y_LEGGINGS.png'        // Negro
-    ],
-    tallas: ['S', 'M'],
-    colores: ['Negro']
+    colores: ['Negro'],
+    featured: false
   },
   {
     nombre: 'Conjunto Camiseta y Pantaloneta',
-    precio: 110000,
-    descripcion: 'Conjunto hombre.',
-    stock: 6,
+    precio: 149900,
+    descripcion: 'Conjunto coordinado NOIR Camiseta y Pantaloneta. Máxima transpirabilidad y estilo urbano para entrenamiento.',
+    stock: 9,
     categoria: 'Conjunto',
     imagen: [
-      'ConjuntoHombre.png'        // Negro
+      '/uploads/productos/conjuntos/Conjunto_Hombre_Camisa_Pantaloneta.jpg'
     ],
     tallas: ['S', 'M'],
-    colores: ['Negro']
+    colores: ['Negro'],
+    featured: false
+  },
+  {
+    nombre: 'Conjunto Top y Leggins',
+    precio: 169900,
+    descripcion: 'Conjunto coordinado NOIR Top y Leggins. Ajuste anatómico y confección premium para alto rendimiento.',
+    stock: 10,
+    categoria: 'Conjunto',
+    imagen: [
+      '/uploads/productos/conjuntos/Conjunto_Mujer_TopMangaLarga_Legguins.jpg'
+    ],
+    tallas: ['S', 'M'],
+    colores: ['Negro'],
+    featured: false
   }
 ];
 
-const reemplazarProductos = async () => {
-  try {
-    await Producto.deleteMany({});
-    console.log('🗑️ Productos anteriores eliminados');
-    await Producto.insertMany(productos);
-    console.log('✅ Nuevos productos insertados correctamente');
-  } catch (error) {
-    console.error('❌ Error:', error);
-  } finally {
-    mongoose.connection.close();
-  }
-};
-
-reemplazarProductos();
+module.exports = { productos };

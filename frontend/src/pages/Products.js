@@ -14,14 +14,14 @@ const COLLECTION_METADATA = {
     title: 'MEN',
     eyebrow: 'NOIR // PERFORMANCE & COMPRESSION',
     description: 'Performance-driven essentials for training and movement.',
-    image: `${API_URL}/uploads/IMGHOMBRE.jpg`,
+    image: `${API_URL}/uploads/marketing/IMGHOMBRE.jpg`,
     fallback: '/Img/promocion1.jpg',
   },
   women: {
     title: 'WOMEN',
     eyebrow: 'NOIR // TECHNICAL SILHOUETTES',
     description: 'Technical silhouettes built for performance and evolution.',
-    image: `${API_URL}/uploads/IMGMUJER.jpg`,
+    image: `${API_URL}/uploads/marketing/IMGMUJER.jpg`,
     fallback: '/Img/promo2.jpg',
   },
   all: {

@@ -105,7 +105,11 @@ const ProductDetail = () => {
       : [];
 
     return list.map((img) => {
+      if (!img) return '/Img/foto.png';
       if (img.startsWith('http://') || img.startsWith('https://')) return img;
+      if (img.startsWith('/uploads/')) return `${API_URL}${img}`;
+      if (img.startsWith('uploads/')) return `${API_URL}/${img}`;
+      if (img.startsWith('productos/')) return `${API_URL}/uploads/${img}`;
       if (img.startsWith('/')) return img;
       return `${API_URL}/uploads/${img}`;
     });

@@ -12,7 +12,12 @@ backend/node_modules/
 frontend/build/
 
 # Backend generated files
-backend/uploads/
+# Runtime-generated uploads
+backend/uploads/*
+!backend/uploads/productos/
+!backend/uploads/productos/**
+!backend/uploads/marketing/
+!backend/uploads/marketing/**
 backend/invoices/
 
 # Local caches
